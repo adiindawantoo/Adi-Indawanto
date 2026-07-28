@@ -1,0 +1,222 @@
+{
+  "entities": {
+    "task": {
+      "title": "Task",
+      "description": "Task management item for TMII",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["Belum Dimulai", "Sedang Berjalan", "Selesai", "Ditunda"] },
+        "assignee": { "type": "string" },
+        "startDate": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "priority": { "type": "string", "enum": ["Rendah", "Sedang", "Tinggi", "Urgent"] },
+        "category": { "type": "string", "enum": ["Umum", "Fixed Asset", "Satwa", "CCTV", "MEP", "Museum"] },
+        "driveFileId": { "type": "string" },
+        "driveFileUrl": { "type": "string" },
+        "driveFileName": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["title", "status", "priority", "category"]
+    },
+    "fixed_asset": {
+      "title": "Fixed Asset",
+      "description": "Fixed asset in TMII",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "brand": { "type": "string" },
+        "location": { "type": "string" },
+        "acquisitionDate": { "type": "string" },
+        "acquisitionCost": { "type": "number" },
+        "condition": { "type": "string", "enum": ["Baik", "Rusak Ringan", "Rusak Berat"] },
+        "status": { "type": "string", "enum": ["Aktif", "Non-Aktif", "Diperbaiki", "Dihapuskan"] },
+        "lastMaintenance": { "type": "string" },
+        "nextMaintenance": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["code", "name", "condition", "status"]
+    },
+    "animal": {
+      "title": "Animal",
+      "description": "Animal asset at TMII park",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "species": { "type": "string" },
+        "location": { "type": "string" },
+        "healthStatus": { "type": "string", "enum": ["Sehat", "Dalam Perawatan", "Sakit", "Karantina"] },
+        "lastCheckup": { "type": "string" },
+        "nextCheckup": { "type": "string" },
+        "diet": { "type": "string" },
+        "medicalHistory": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["code", "name", "species", "healthStatus"]
+    },
+    "cctv": {
+      "title": "CCTV",
+      "description": "CCTV camera monitoring asset",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "location": { "type": "string" },
+        "brand": { "type": "string" },
+        "status": { "type": "string", "enum": ["Aktif", "Mati", "Rusak", "Perbaikan"] },
+        "ipAddress": { "type": "string" },
+        "lastMaintenance": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["code", "name", "location", "status"]
+    },
+    "mep": {
+      "title": "MEP",
+      "description": "Mechanical, Electrical, and Plumbing assets",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string", "enum": ["Mechanical", "Electrical", "Plumbing"] },
+        "location": { "type": "string" },
+        "brand": { "type": "string" },
+        "capacity": { "type": "string" },
+        "status": { "type": "string", "enum": ["Normal", "Bermasalah", "Mati Total", "Service"] },
+        "maintenanceFrequency": { "type": "string", "enum": ["Mingguan", "Bulanan", "Triwulanan", "Tahunan"] },
+        "lastMaintenance": { "type": "string" },
+        "nextMaintenance": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["code", "name", "category", "status"]
+    },
+    "museum_collection": {
+      "title": "Museum Collection",
+      "description": "Collection assets inside TMII museums",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "registerNo": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "museumName": { "type": "string" },
+        "origin": { "type": "string" },
+        "material": { "type": "string" },
+        "dimension": { "type": "string" },
+        "condition": { "type": "string", "enum": ["Utuh", "Rusak Sebagian", "Rusak Parah"] },
+        "description": { "type": "string" },
+        "driveFileUrl": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["registerNo", "name", "museumName", "condition"]
+    },
+    "allowed_email": {
+      "title": "Allowed Email",
+      "description": "Whitelisted email address for logging into the TMII app",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "addedAt": { "type": "string" },
+        "addedBy": { "type": "string" }
+      },
+      "required": ["email"]
+    },
+    "asset_location": {
+      "title": "Asset Location",
+      "description": "Configured location setting in TMII",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "region": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "region"]
+    },
+    "asset_category": {
+      "title": "Asset Category",
+      "description": "Configured asset category and types setting in TMII",
+      "type": "object",
+      "properties": {
+        "category": { "type": "string" },
+        "types": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["category", "types"]
+    },
+    "asset_maintenance": {
+      "title": "Asset Maintenance",
+      "description": "Maintenance records and logs for fixed assets in TMII",
+      "type": "object",
+      "properties": {
+        "assetId": { "type": "string" },
+        "assetCode": { "type": "string" },
+        "assetName": { "type": "string" },
+        "assetCategory": { "type": "string" },
+        "assetLocation": { "type": "string" },
+        "maintenanceDate": { "type": "string" },
+        "description": { "type": "string" },
+        "cost": { "type": "number" },
+        "vendorTechnician": { "type": "string" },
+        "status": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdByName": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["assetId", "assetCode", "assetName", "maintenanceDate", "description", "cost"]
+    }
+  },
+  "firestore": {
+    "tasks": {
+      "schema": "task",
+      "description": "Collection of tasks"
+    },
+    "fixed_assets": {
+      "schema": "fixed_asset",
+      "description": "Collection of fixed assets"
+    },
+    "animals": {
+      "schema": "animal",
+      "description": "Collection of animals in animal park/wahana"
+    },
+    "cctvs": {
+      "schema": "cctv",
+      "description": "Collection of CCTV cameras"
+    },
+    "meps": {
+      "schema": "mep",
+      "description": "Collection of MEP items"
+    },
+    "museum_collections": {
+      "schema": "museum_collection",
+      "description": "Collection of museum collection items"
+    },
+    "allowed_emails": {
+      "schema": "allowed_email",
+      "description": "List of authorized user emails"
+    },
+    "asset_locations": {
+      "schema": "asset_location",
+      "description": "Configured asset locations"
+    },
+    "asset_categories": {
+      "schema": "asset_category",
+      "description": "Configured asset categories and sub-types"
+    },
+    "asset_maintenances": {
+      "schema": "asset_maintenance",
+      "description": "Asset maintenance records and costs"
+    }
+  }
+}

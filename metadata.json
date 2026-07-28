@@ -1,0 +1,10 @@
+{
+  "name": "TMII Asset Management",
+  "description": "Sistem Manajemen Aset dan Pelacakan Tugas Terintegrasi untuk Taman Mini Indonesia Indah (TMII).",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
