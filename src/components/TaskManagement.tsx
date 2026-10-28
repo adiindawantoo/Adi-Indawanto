@@ -6,6 +6,7 @@ import {
   Trash2, 
   Edit, 
   FileSpreadsheet,
+  FileText,
   CheckCircle2,
   Clock,
   AlertCircle,
@@ -14,11 +15,19 @@ import {
   Loader2,
   ExternalLink,
   ArrowUpDown,
-  Tag
+  Tag,
+  AlertTriangle,
+  Share2,
+  Copy,
+  Check,
+  Eye,
+  Phone,
+  Globe
 } from 'lucide-react';
 import { UserTask, AppTheme } from '../types';
 import { exportToExcel } from '../lib/excel';
 import ImportDataPanel from './ImportDataPanel';
+import TaskReportModal from './TaskReportModal';
 
 interface TaskManagementProps {
   tasks: UserTask[];
@@ -28,6 +37,7 @@ interface TaskManagementProps {
   isAdmin?: boolean;
   googleAccessToken: string | null;
   theme: AppTheme;
+  userEmail?: string | null;
 }
 
 export default function TaskManagement({
@@ -37,17 +47,19 @@ export default function TaskManagement({
   onDeleteTask,
   isAdmin = true,
   googleAccessToken,
-  theme
+  theme,
+  userEmail
 }: TaskManagementProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Semua');
+  const [statusFilter, setStatusFilter] = useState('Belum Selesai');
   const [priorityFilter, setPriorityFilter] = useState('Semua');
   const [categoryFilter, setCategoryFilter] = useState('Semua');
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  // Sorting & Pagination States
-  const [sortColumn, setSortColumn] = useState<string>('dueDate');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  // Sorting & Pagination States (Default: Tanggal Terkini Descending)
+  const [sortColumn, setSortColumn] = useState<string>('createdAt');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -70,6 +82,11 @@ export default function TaskManagement({
 
   const [uploadingFile, setUploadingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Guest portal link & photo lightbox states
+  const [isGuestLinkModalOpen, setIsGuestLinkModalOpen] = useState(false);
+  const [copiedGuestLink, setCopiedGuestLink] = useState(false);
+  const [previewPhotoUrl, setPreviewPhotoUrl] = useState<string | null>(null);
 
   // Reset page when filter or sorting changes
   useEffect(() => {
@@ -256,7 +273,10 @@ export default function TaskManagement({
       task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.assignee.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === 'Semua' || task.status === statusFilter;
+    const matchesStatus = 
+      statusFilter === 'Semua' ? true :
+      statusFilter === 'Belum Selesai' ? task.status !== 'Selesai' :
+      task.status === statusFilter;
     const matchesPriority = priorityFilter === 'Semua' || task.priority === priorityFilter;
     const matchesCategory = categoryFilter === 'Semua' || task.category === categoryFilter;
 
@@ -304,6 +324,24 @@ export default function TaskManagement({
               <span>Import Excel/CSV</span>
             </button>
           )}
+          <button 
+            onClick={() => setIsReportModalOpen(true)}
+            className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-800 font-semibold py-2 px-4 rounded-xl shadow-xs border border-slate-200/80 transition-all cursor-pointer hover:border-slate-300"
+            id="btn-generate-task-report"
+            title="Generate Laporan Pekerjaan & Download PDF"
+          >
+            <FileText size={18} className="text-rose-600" />
+            <span>Generate Laporan & PDF</span>
+          </button>
+          <button 
+            onClick={() => setIsGuestLinkModalOpen(true)}
+            className="inline-flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold py-2 px-4 rounded-xl shadow-xs border border-emerald-300/80 transition-all cursor-pointer"
+            id="btn-guest-form-link"
+            title="Bagikan Tautan Formulir Laporan Tamu"
+          >
+            <Globe size={18} className="text-emerald-700" />
+            <span>Formulir Tamu</span>
+          </button>
           <button 
             onClick={handleExport}
             className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors"
@@ -368,8 +406,9 @@ export default function TaskManagement({
             <select 
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none"
+              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
             >
+              <option value="Belum Selesai">Belum Selesai (Aktif)</option>
               <option value="Semua">Semua Status</option>
               <option value="Belum Dimulai">Belum Dimulai</option>
               <option value="Sedang Berjalan">Sedang Berjalan</option>
@@ -382,7 +421,7 @@ export default function TaskManagement({
             <select 
               value={priorityFilter}
               onChange={e => setPriorityFilter(e.target.value)}
-              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none"
+              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
             >
               <option value="Semua">Semua Prioritas</option>
               <option value="Rendah">Rendah</option>
@@ -396,7 +435,7 @@ export default function TaskManagement({
             <select 
               value={categoryFilter}
               onChange={e => setCategoryFilter(e.target.value)}
-              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none"
+              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
             >
               <option value="Semua">Semua Kategori</option>
               <option value="Umum">Umum</option>
@@ -413,20 +452,22 @@ export default function TaskManagement({
             <select 
               value={sortColumn}
               onChange={e => setSortColumn(e.target.value)}
-              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none"
+              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
             >
+              <option value="createdAt">Tanggal Terkini (Dibuat)</option>
+              <option value="dueDate">Batas Waktu (Due Date)</option>
+              <option value="startDate">Tanggal Mulai</option>
               <option value="title">Judul Tugas</option>
               <option value="category">Kategori</option>
               <option value="priority">Prioritas</option>
               <option value="status">Status</option>
-              <option value="dueDate">Due Date</option>
             </select>
             <button
               onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
-              className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-gray-500"
-              title="Balikkan Arah Urutan"
+              className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-gray-500 border border-slate-200/60 shrink-0"
+              title={sortDirection === 'desc' ? 'Urutan Terbaru → Terlama' : 'Urutan Terlama → Terbaru'}
             >
-              <ArrowUpDown size={16} />
+              <ArrowUpDown size={16} className={sortDirection === 'desc' ? 'text-teal-700 font-bold' : 'text-gray-500'} />
             </button>
           </div>
 
@@ -438,12 +479,71 @@ export default function TaskManagement({
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1000px] text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/60 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                <th className="py-4 px-6">Tugas / Kategori</th>
-                <th className="py-4 px-6">Status</th>
-                <th className="py-4 px-6">Prioritas</th>
-                <th className="py-4 px-6">Penanggung Jawab</th>
-                <th className="py-4 px-6">Tenggat Waktu</th>
+              <tr className="bg-slate-50/80 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th 
+                  className="py-4 px-6 cursor-pointer hover:bg-slate-100/60 transition-colors select-none"
+                  onClick={() => {
+                    if (sortColumn === 'title') setSortDirection(p => p === 'asc' ? 'desc' : 'asc');
+                    else { setSortColumn('title'); setSortDirection('asc'); }
+                  }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Tugas / Kategori
+                    <ArrowUpDown size={13} className={sortColumn === 'title' ? 'text-teal-600 font-bold' : 'text-gray-300'} />
+                  </div>
+                </th>
+                <th 
+                  className="py-4 px-6 cursor-pointer hover:bg-slate-100/60 transition-colors select-none"
+                  onClick={() => {
+                    if (sortColumn === 'status') setSortDirection(p => p === 'asc' ? 'desc' : 'asc');
+                    else { setSortColumn('status'); setSortDirection('asc'); }
+                  }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Status
+                    <ArrowUpDown size={13} className={sortColumn === 'status' ? 'text-teal-600 font-bold' : 'text-gray-300'} />
+                  </div>
+                </th>
+                <th 
+                  className="py-4 px-6 cursor-pointer hover:bg-slate-100/60 transition-colors select-none"
+                  onClick={() => {
+                    if (sortColumn === 'priority') setSortDirection(p => p === 'asc' ? 'desc' : 'asc');
+                    else { setSortColumn('priority'); setSortDirection('asc'); }
+                  }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Prioritas
+                    <ArrowUpDown size={13} className={sortColumn === 'priority' ? 'text-teal-600 font-bold' : 'text-gray-300'} />
+                  </div>
+                </th>
+                <th 
+                  className="py-4 px-6 cursor-pointer hover:bg-slate-100/60 transition-colors select-none"
+                  onClick={() => {
+                    if (sortColumn === 'assignee') setSortDirection(p => p === 'asc' ? 'desc' : 'asc');
+                    else { setSortColumn('assignee'); setSortDirection('asc'); }
+                  }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Penanggung Jawab
+                    <ArrowUpDown size={13} className={sortColumn === 'assignee' ? 'text-teal-600 font-bold' : 'text-gray-300'} />
+                  </div>
+                </th>
+                <th 
+                  className="py-4 px-6 cursor-pointer hover:bg-slate-100/60 transition-colors select-none"
+                  onClick={() => {
+                    if (sortColumn === 'createdAt' || sortColumn === 'dueDate') {
+                      setSortDirection(p => p === 'asc' ? 'desc' : 'asc');
+                    } else {
+                      setSortColumn('createdAt');
+                      setSortDirection('desc');
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Tenggat & Tanggal
+                    <ArrowUpDown size={13} className={(sortColumn === 'createdAt' || sortColumn === 'dueDate') ? 'text-teal-600 font-bold' : 'text-gray-300'} />
+                  </div>
+                </th>
                 <th className="py-4 px-6">Lampiran GDrive</th>
                 <th className="py-4 px-6 text-center">Aksi</th>
               </tr>
@@ -460,13 +560,44 @@ export default function TaskManagement({
                   <tr key={task.id} className="hover:bg-slate-50/30 transition-colors">
                     <td className="py-4 px-6">
                       <div>
-                        <div className="font-semibold text-gray-900 text-sm">{task.title}</div>
-                        <div className="text-xs text-gray-400 mt-1 line-clamp-1">{task.description || 'Tidak ada deskripsi'}</div>
-                        <div className="mt-2 flex items-center gap-1">
-                          <Tag size={12} className="text-gray-400" />
-                          <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                            {task.category}
-                          </span>
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="font-semibold text-gray-900 text-sm">{task.title}</span>
+                          {(task.source === 'guest' || task.ticketNumber) && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                              <AlertTriangle size={10} className="text-amber-600" />
+                              Laporan Tamu {task.ticketNumber ? `(#${task.ticketNumber})` : ''}
+                            </span>
+                          )}
+                          {task.isUntagged && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                              Manual (Belum Tagging)
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1 line-clamp-1">{task.description || 'Tidak ada deskripsi'}</div>
+                        <div className="mt-2 flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-1">
+                            <Tag size={12} className="text-gray-400" />
+                            <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                              {task.category}
+                            </span>
+                          </div>
+                          {task.reporterName && (
+                            <span className="text-[11px] text-slate-600 bg-slate-100/70 px-2 py-0.5 rounded-md">
+                              Pelapor: <strong className="text-slate-800">{task.reporterName}</strong>
+                            </span>
+                          )}
+                          {task.photoUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setPreviewPhotoUrl(task.photoUrl || null)}
+                              className="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-md flex items-center gap-1 cursor-pointer transition-colors border border-emerald-200/60"
+                              title="Lihat Foto Bukti"
+                            >
+                              <Eye size={11} />
+                              <span>Foto Bukti</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -593,6 +724,93 @@ export default function TaskManagement({
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {/* Guest Report Banner if task originated from Guest Portal */}
+              {editingTask && (editingTask.source === 'guest' || editingTask.ticketNumber || editingTask.reporterName) && (
+                <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl text-xs space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="p-1 bg-amber-500 text-white rounded-lg">
+                        <AlertTriangle size={14} />
+                      </span>
+                      <span className="font-extrabold text-amber-900 uppercase tracking-wider text-[11px]">
+                        Laporan Pengaduan Tamu / Publik
+                      </span>
+                    </div>
+                    {editingTask.ticketNumber && (
+                      <span className="font-mono font-black text-emerald-700 bg-white px-2.5 py-0.5 rounded-md border border-amber-200">
+                        Tiket: #{editingTask.ticketNumber}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-700 pt-1">
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Nama Pelapor:</span>
+                      <span className="font-bold text-slate-900 text-sm">{editingTask.reporterName || '-'}</span>
+                      {editingTask.reporterUnit && (
+                        <span className="text-slate-500 text-[11px] block">Asal: {editingTask.reporterUnit}</span>
+                      )}
+                    </div>
+
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Kontak Pelapor:</span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="font-bold text-slate-900">{editingTask.reporterContact || '-'}</span>
+                        {editingTask.reporterContact && (
+                          <a
+                            href={`https://wa.me/${editingTask.reporterContact.replace(/[^0-9]/g, '').replace(/^0/, '62')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold inline-flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            <Phone size={10} />
+                            <span>WhatsApp</span>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Status Aset:</span>
+                      <span className={`font-bold ${editingTask.isUntagged ? 'text-rose-700' : 'text-slate-900'}`}>
+                        {editingTask.isUntagged 
+                          ? '⚠️ Belum Di-tagging (Diinput Manual oleh Tamu)' 
+                          : (editingTask.assetCode || 'Terdaftar')}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Lokasi Terlaporkan:</span>
+                      <span className="font-semibold text-slate-800">
+                        {editingTask.locationArea || '-'} {editingTask.locationDetail ? `(${editingTask.locationDetail})` : ''}
+                      </span>
+                    </div>
+                  </div>
+
+                  {editingTask.photoUrl && (
+                    <div className="pt-2 border-t border-amber-200/60">
+                      <span className="text-slate-500 block text-[10px] uppercase font-bold mb-1.5">Foto Bukti Kerusakan dari Pelapor:</span>
+                      <div className="relative inline-block border-2 border-amber-300 rounded-xl overflow-hidden group">
+                        <img 
+                          src={editingTask.photoUrl} 
+                          alt="Foto Laporan Tamu" 
+                          className="h-28 w-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => setPreviewPhotoUrl(editingTask.photoUrl || null)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setPreviewPhotoUrl(editingTask.photoUrl || null)}
+                          className="absolute inset-0 bg-black/40 text-white flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold cursor-pointer"
+                        >
+                          <Eye size={14} />
+                          <span>Perbesar Foto</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <fieldset disabled={!isAdmin} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
@@ -840,6 +1058,120 @@ export default function TaskManagement({
               </div>
             </form>
           </motion.div>
+        </div>
+      )}
+
+      {/* Task Report Generator & PDF Download Modal */}
+      <TaskReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        tasks={tasks}
+        theme={theme}
+        userEmail={userEmail}
+      />
+
+      {/* Guest Report Public Link Modal */}
+      {isGuestLinkModalOpen && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl w-full max-w-lg shadow-xl p-6 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                  <Globe size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Portal Pengaduan & Laporan Tamu</h3>
+                  <p className="text-xs text-slate-500">Akses publik mandiri tanpa perlu login</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsGuestLinkModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                Tautan Akses Formulir Laporan Tamu:
+              </span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={`${window.location.origin}/?mode=guest-report`}
+                  className="w-full text-xs font-mono bg-white p-2.5 rounded-lg border border-slate-200 select-all"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/?mode=guest-report`);
+                    setCopiedGuestLink(true);
+                    setTimeout(() => setCopiedGuestLink(false), 2500);
+                  }}
+                  className="px-3 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold shrink-0 flex items-center gap-1.5 cursor-pointer transition-colors"
+                >
+                  {copiedGuestLink ? <Check size={14} /> : <Copy size={14} />}
+                  <span>{copiedGuestLink ? 'Tersalin' : 'Salin'}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="text-xs text-slate-600 space-y-2">
+              <p className="font-semibold text-slate-800">Fitur & Ketentuan Akses Tamu:</p>
+              <ul className="list-disc list-inside space-y-1 text-slate-500 pl-1">
+                <li>Tamu hanya dapat menginput laporan kerusakan, pemindahan, atau kendala fasilitas.</li>
+                <li>Tamu tidak memiliki akses membaca data aset atau fitur sistem lainnya.</li>
+                <li>Mendukung opsi <strong>Input Manual</strong> jika aset belum di-tagging / tanpa kode QR.</li>
+                <li>Setiap laporan langsung otomatis tercatat di tabel <strong>Task Monitoring</strong> ini.</li>
+              </ul>
+            </div>
+
+            <div className="pt-2 flex items-center justify-between">
+              <a
+                href="/?mode=guest-report"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:underline"
+              >
+                <ExternalLink size={13} />
+                <span>Buka Formulir di Tab Baru</span>
+              </a>
+
+              <button
+                onClick={() => setIsGuestLinkModalOpen(false)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Photo Preview Lightbox */}
+      {previewPhotoUrl && (
+        <div 
+          className="fixed inset-0 bg-black/80 z-60 flex items-center justify-center p-4 backdrop-blur-sm cursor-pointer"
+          onClick={() => setPreviewPhotoUrl(null)}
+        >
+          <div className="relative max-w-2xl max-h-[85vh] bg-black rounded-2xl overflow-hidden shadow-2xl p-2" onClick={e => e.stopPropagation()}>
+            <img 
+              src={previewPhotoUrl} 
+              alt="Bukti Foto Pelapor" 
+              className="max-w-full max-h-[80vh] object-contain mx-auto rounded-lg"
+            />
+            <button
+              onClick={() => setPreviewPhotoUrl(null)}
+              className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black/90 text-white rounded-full transition-colors cursor-pointer"
+            >
+              &times;
+            </button>
+          </div>
         </div>
       )}
     </div>

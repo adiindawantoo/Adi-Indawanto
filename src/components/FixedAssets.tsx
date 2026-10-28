@@ -31,7 +31,15 @@ import {
   X,
   FileCheck,
   Camera,
-  QrCode
+  QrCode,
+  Sparkles,
+  RefreshCw,
+  FileCode2,
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronUp,
+  UserCheck,
+  Clock
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -43,6 +51,21 @@ import ImportDataPanel from './ImportDataPanel';
 import LocationAutoComplete from './LocationAutoComplete';
 import TmiiLogo from './TmiiLogo';
 import QRScannerModal from './QRScannerModal';
+import AssetDepreciationScheduleModal from './AssetDepreciationScheduleModal';
+import BatchAssetCodeGeneratorModal from './BatchAssetCodeGeneratorModal';
+import { 
+  TAX_DEPRECIATION_GROUPS, 
+  parseUsefulLife, 
+  formatRupiah, 
+  calculateAssetDepreciationForMonth 
+} from '../lib/depreciation';
+import { 
+  generateNextAssetCode, 
+  parseAssetCode, 
+  ASSET_OWNERSHIP_RULES, 
+  ASSET_LOCATION_AREA_RULES,
+  ASSET_CATEGORY_RULES 
+} from '../lib/assetCodeGenerator';
 
 interface FixedAssetsProps {
   assets: FixedAsset[];
@@ -54,6 +77,7 @@ interface FixedAssetsProps {
   isAdmin?: boolean;
   googleAccessToken: string | null;
   theme: AppTheme;
+  onNavigateToDepreciation?: () => void;
 }
 
 export default function FixedAssets({
@@ -65,10 +89,12 @@ export default function FixedAssets({
   configuredCategories = [],
   isAdmin = true,
   googleAccessToken,
-  theme
+  theme,
+  onNavigateToDepreciation
 }: FixedAssetsProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
+  const [isBatchCodeModalOpen, setIsBatchCodeModalOpen] = useState(false);
   const [conditionFilter, setConditionFilter] = useState('Semua');
   const [statusFilter, setStatusFilter] = useState('Semua');
   const [locationFilter, setLocationFilter] = useState('Semua');
@@ -125,7 +151,8 @@ export default function FixedAssets({
     usefulLife: 100,
     condition: 110,
     status: 100,
-    photoUrl: 100
+    photoUrl: 100,
+    registrationLog: 150
   });
 
   const startResize = (e: React.MouseEvent, colKey: string) => {
@@ -155,6 +182,9 @@ export default function FixedAssets({
   const [editingAsset, setEditingAsset] = useState<FixedAsset | null>(null);
   
   const [formCode, setFormCode] = useState('');
+  const [isAutoGenerateCode, setIsAutoGenerateCode] = useState(true);
+  const [isCustomOwnership, setIsCustomOwnership] = useState(false);
+  const [showCodeRulesBreakdown, setShowCodeRulesBreakdown] = useState(false);
   const [formName, setFormName] = useState('');
   const [formBrand, setFormBrand] = useState('');
   const [formOwnership, setFormOwnership] = useState('');
@@ -166,6 +196,10 @@ export default function FixedAssets({
   const [formAcquisitionDate, setFormAcquisitionDate] = useState('');
   const [formAcquisitionCost, setFormAcquisitionCost] = useState<number>(0);
   const [formUsefulLife, setFormUsefulLife] = useState('');
+  const [formSalvageValue, setFormSalvageValue] = useState<number>(0);
+  const [formDepreciationMethod, setFormDepreciationMethod] = useState<'Garis Lurus' | 'Saldo Menurun' | 'Tidak Disusutkan'>('Garis Lurus');
+  const [formTaxGroup, setFormTaxGroup] = useState<string>('');
+  const [scheduleModalAsset, setScheduleModalAsset] = useState<FixedAsset | null>(null);
   const [formCondition, setFormCondition] = useState<FixedAsset['condition']>('Baik');
   const [formStatus, setFormStatus] = useState<FixedAsset['status']>('Aktif');
   const [formPhotoUrl, setFormPhotoUrl] = useState('');
@@ -178,6 +212,31 @@ export default function FixedAssets({
   const [manualDriveName, setManualDriveName] = useState('');
   const [uploadingFile, setUploadingFile] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Auto-calculated parsed code info for real-time validation badge
+  const parsedCurrentFormCode = React.useMemo(() => {
+    return parseAssetCode(formCode);
+  }, [formCode]);
+
+  // Compute next code automatically when auto-generate is active
+  const handleTriggerAutoGenerate = React.useCallback(() => {
+    const nextGen = generateNextAssetCode({
+      ownership: formOwnership || 'Barang Milik Negara',
+      locationNameOrCategory: formLocation || '01',
+      category: formCategory || 'INF',
+      type: formType || '',
+      acquisitionYearOrDate: formAcquisitionDate || new Date().toISOString().split('T')[0]
+    }, assets, configuredLocations, configuredCategories);
+    setFormCode(nextGen.fullCode);
+    return nextGen;
+  }, [formOwnership, formLocation, formCategory, formType, formAcquisitionDate, assets, configuredLocations, configuredCategories]);
+
+  // Synchronize generated code when dependencies change during add modal
+  useEffect(() => {
+    if (isModalOpen && !editingAsset && isAutoGenerateCode) {
+      handleTriggerAutoGenerate();
+    }
+  }, [isModalOpen, editingAsset, isAutoGenerateCode, formOwnership, formLocation, formCategory, formType, formAcquisitionDate, handleTriggerAutoGenerate]);
 
   // Real-time Maintenance & Mutation Logs for Asset Detail & Summary Print
   const [maintenances, setMaintenances] = useState<AssetMaintenance[]>([]);
@@ -254,6 +313,9 @@ export default function FixedAssets({
     setFormAcquisitionDate('');
     setFormAcquisitionCost(0);
     setFormUsefulLife('');
+    setFormSalvageValue(0);
+    setFormDepreciationMethod('Garis Lurus');
+    setFormTaxGroup('');
     setFormCondition('Baik');
     setFormStatus('Aktif');
     setFormPhotoUrl('');
@@ -267,13 +329,47 @@ export default function FixedAssets({
 
   const handleOpenAddModal = () => {
     resetForm();
-    const nextNum = String(assets.length + 1).padStart(3, '0');
-    setFormCode(`TMII-FA-${nextNum}`);
+    setIsAutoGenerateCode(true);
+    setIsCustomOwnership(false);
+    setShowCodeRulesBreakdown(false);
+
+    const initialOwnership = 'Barang Milik Negara';
+    const initialCategory = activeCategoriesList[0]?.category || 'Infrastruktur & Landskap';
+    const initialType = activeCategoriesList[0]?.types[0] || 'Gerbang / Gate Kawasan';
+    const initialDate = new Date().toISOString().split('T')[0];
+    const initialLoc = activeLocationsList[0]?.name || 'Gate 1 (Utama)';
+    const initialArea = activeLocationsList[0]?.region || 'Wilayah Utara';
+
+    setFormOwnership(initialOwnership);
+    setFormCategory(initialCategory);
+    setFormType(initialType);
+    setFormAcquisitionDate(initialDate);
+    setFormLocation(initialLoc);
+    setFormArea(initialArea);
+    setFormUsefulLife('5 Tahun');
+    setFormTaxGroup('kelompok_1');
+    setFormDepreciationMethod('Garis Lurus');
+    setFormSalvageValue(0);
+
+    const generated = generateNextAssetCode({
+      ownership: initialOwnership,
+      locationNameOrCategory: initialLoc,
+      category: initialCategory,
+      type: initialType,
+      acquisitionYearOrDate: initialDate
+    }, assets, configuredLocations, configuredCategories);
+
+    setFormCode(generated.fullCode);
     setIsModalOpen(true);
   };
 
   const handleOpenEditModal = (asset: FixedAsset) => {
     setEditingAsset(asset);
+    setIsAutoGenerateCode(false);
+    setShowCodeRulesBreakdown(false);
+    // Check if ownership is standard or custom
+    const standardOwnerships = ['Barang Milik Negara', 'PT Taman Wisata Candi', 'PT Bhumi Visatanda Indonesia', 'Kementrian', 'Pemerintah Provinsi'];
+    setIsCustomOwnership(!standardOwnerships.includes(asset.ownership || ''));
     setFormCode(asset.code);
     setFormName(asset.name);
     setFormBrand(asset.brand || '');
@@ -285,7 +381,16 @@ export default function FixedAssets({
     setFormClassification(asset.classification || 'Aset');
     setFormAcquisitionDate(asset.acquisitionDate || '');
     setFormAcquisitionCost(asset.acquisitionCost || 0);
-    setFormUsefulLife(asset.usefulLife || '');
+
+    const isNonDepr = 
+      asset.depreciationMethod === 'Tidak Disusutkan' || 
+      asset.usefulLifeGroup === 'tanah_non_depresiasi' ||
+      asset.usefulLife?.toLowerCase().includes('tidak disusutkan');
+
+    setFormDepreciationMethod(isNonDepr ? 'Tidak Disusutkan' : (asset.depreciationMethod || 'Garis Lurus'));
+    setFormTaxGroup(isNonDepr ? 'tanah_non_depresiasi' : (asset.usefulLifeGroup || ''));
+    setFormUsefulLife(isNonDepr ? 'Tidak Disusutkan' : (asset.usefulLife || '5 Tahun'));
+    setFormSalvageValue(asset.salvageValue || 0);
     setFormCondition(asset.condition || 'Baik');
     setFormStatus(asset.status || 'Aktif');
     setFormPhotoUrl(asset.photoUrl || '');
@@ -400,6 +505,9 @@ export default function FixedAssets({
       acquisitionDate: formAcquisitionDate,
       acquisitionCost: Number(formAcquisitionCost) || 0,
       usefulLife: formUsefulLife,
+      salvageValue: Number(formSalvageValue) || 0,
+      depreciationMethod: formDepreciationMethod || 'Garis Lurus',
+      usefulLifeGroup: formTaxGroup || '',
       condition: formCondition,
       status: formStatus,
       photoUrl: formPhotoUrl,
@@ -450,10 +558,13 @@ export default function FixedAssets({
         'Jenis': a.type || '',
         'Tanggal Perolehan': a.acquisitionDate || '',
         'Nilai Perolehan (IDR)': a.acquisitionCost || 0,
+        'Metode Depresiasi': a.depreciationMethod || 'Garis Lurus',
+        'Golongan Pajak': a.usefulLifeGroup || '',
+        'Masa Manfaat': a.usefulLife || '',
+        'Nilai Residu (IDR)': a.salvageValue || 0,
         'Total Biaya Maintenance (IDR)': maintInfo.totalCost,
         'Frekuensi Maintenance': maintInfo.count,
         'Jumlah Riwayat Mutasi': transList.length,
-        'Masa Manfaat': a.usefulLife || '',
         'Kondisi': a.condition || '',
         'Status': a.status || '',
         'Foto Aset': a.photoUrl || '',
@@ -532,6 +643,28 @@ export default function FixedAssets({
               <span>Import Excel/CSV</span>
             </button>
           )}
+          {onNavigateToDepreciation && (
+            <button 
+              onClick={onNavigateToDepreciation}
+              className="inline-flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors cursor-pointer border border-emerald-200/80"
+              id="btn-navigate-depreciation"
+            >
+              <Calculator size={18} className="text-emerald-700" />
+              <span>Depresiasi & Nilai Buku</span>
+            </button>
+          )}
+          {isAdmin && (
+            <button 
+              type="button"
+              onClick={() => setIsBatchCodeModalOpen(true)}
+              className="inline-flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors cursor-pointer border border-indigo-200/80"
+              id="btn-batch-generate-codes"
+              title="Generate dan Standarisasi Semua Kode Aset TMII"
+            >
+              <Sparkles size={18} className="text-indigo-600" />
+              <span>Generate Semua Kode</span>
+            </button>
+          )}
           <button 
             onClick={handleExport}
             className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors cursor-pointer"
@@ -540,17 +673,15 @@ export default function FixedAssets({
             <FileSpreadsheet size={18} className="text-emerald-600" />
             <span>Ekspor Excel</span>
           </button>
-          {isAdmin && (
-            <button 
-              onClick={handleOpenAddModal}
-              className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
-              style={{ backgroundColor: theme.primaryColor }}
-              id="btn-add-asset"
-            >
-              <Plus size={18} />
-              <span>Registrasi Aset</span>
-            </button>
-          )}
+          <button 
+            onClick={handleOpenAddModal}
+            className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
+            style={{ backgroundColor: theme.primaryColor }}
+            id="btn-add-asset"
+          >
+            <Plus size={18} />
+            <span>Registrasi Aset</span>
+          </button>
         </div>
       </div>
 
@@ -791,13 +922,19 @@ export default function FixedAssets({
                     <div onMouseDown={(e) => startResize(e, 'photoUrl')} className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-indigo-500/40 active:bg-indigo-600 bg-transparent z-10" />
                   </div>
                 </th>
+                <th style={{ width: colWidths.registrationLog }} className="py-3.5 px-4 whitespace-nowrap relative group select-none">
+                  <div className="flex items-center justify-between">
+                    <span>Log Registrasi</span>
+                    <div onMouseDown={(e) => startResize(e, 'registrationLog')} className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-indigo-500/40 active:bg-indigo-600 bg-transparent z-10" />
+                  </div>
+                </th>
                 <th className="py-3.5 px-4 text-center whitespace-nowrap w-24">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-xs text-gray-700">
               {paginatedAssets.length === 0 ? (
                 <tr>
-                  <td colSpan={16} className="text-center py-12 text-gray-400">
+                  <td colSpan={17} className="text-center py-12 text-gray-400">
                     Tidak ada aset tetap yang ditemukan.
                   </td>
                 </tr>
@@ -936,8 +1073,27 @@ export default function FixedAssets({
                         </div>
                       </div>
                     </td>
+                    <td className="py-3.5 px-4">
+                      <div style={{ width: colWidths.registrationLog }} className="truncate">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-slate-800 truncate" title={asset.createdByName || asset.createdBy || 'Staf TMII'}>
+                            {asset.createdByName || (asset.createdBy ? asset.createdBy.split('@')[0] : 'Staf TMII')}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {asset.createdAt ? new Date(asset.createdAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
                     <td className="py-3.5 px-4 text-center">
                       <div className="flex items-center justify-center gap-1.5">
+                        <button 
+                          onClick={() => setScheduleModalAsset(asset)}
+                          className="p-1 text-emerald-700 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                          title="Perhitungan Depresiasi & Jadwal Nilai Buku"
+                        >
+                          <Calculator size={14} />
+                        </button>
                         <button 
                           onClick={() => setSummaryAssetToPrint(asset)}
                           className="p-1 text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
@@ -1034,18 +1190,176 @@ export default function FixedAssets({
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <fieldset disabled={!isAdmin} className="space-y-4">
+              {/* Asset Registration Log Banner */}
+              {editingAsset && (
+                <div className="p-3.5 bg-blue-50/80 border border-blue-200/80 rounded-2xl flex items-start sm:items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <UserCheck size={16} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900">
+                          Diregistrasi oleh: <span className="text-blue-700 font-extrabold">{editingAsset.createdByName || editingAsset.createdBy || 'Staf TMII'}</span>
+                        </span>
+                        {editingAsset.createdBy && editingAsset.createdByName && (
+                          <span className="text-[11px] text-slate-500 font-mono">({editingAsset.createdBy})</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] text-slate-600 mt-0.5 font-medium">
+                        <Clock size={12} className="text-slate-400" />
+                        <span>Waktu Registrasi: {editingAsset.createdAt ? new Date(editingAsset.createdAt).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' }) : 'Tidak tercatat'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span className="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                    Log Sistem
+                  </span>
+                </div>
+              )}
+              <fieldset disabled={editingAsset !== null && !isAdmin} className="space-y-4">
+              {/* Auto-Generate Code Assistant Banner */}
+              <div className="bg-gradient-to-r from-blue-50 via-indigo-50/50 to-amber-50/50 border border-blue-200/80 rounded-2xl p-4 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                      <Sparkles size={16} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-slate-900 tracking-tight">Auto-Generate Kode Aset TMII</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-200">
+                          Standar 6 Segmen
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 font-medium mt-0.5">
+                        Format: <code className="font-mono font-bold text-blue-900 bg-blue-100/70 px-1 py-0.5 rounded">[K1][K2].[K3][K4]/[K5]-[K6]</code> (Otomatis berdasarkan lokasi, kategori, jenis, dan tahun).
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-end sm:self-center">
+                    <button
+                      type="button"
+                      onClick={() => setIsAutoGenerateCode(!isAutoGenerateCode)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isAutoGenerateCode 
+                          ? 'bg-blue-600 text-white shadow-xs' 
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      }`}
+                      title={isAutoGenerateCode ? 'Mode Auto-Generate Aktif' : 'Mode Manual Aktif'}
+                    >
+                      <SlidersHorizontal size={13} />
+                      <span>{isAutoGenerateCode ? 'Auto-Gen: ON' : 'Auto-Gen: OFF'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAutoGenerateCode(true);
+                        handleTriggerAutoGenerate();
+                      }}
+                      className="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 shadow-xs transition-all cursor-pointer flex items-center gap-1"
+                      title="Generate Ulang Berdasarkan Form"
+                    >
+                      <RefreshCw size={13} className="text-blue-600" />
+                      <span>Generate Ulang</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Real-time Parsed Status / Breakdown */}
+                {parsedCurrentFormCode && (
+                  <div className="mt-3 pt-3 border-t border-blue-200/60">
+                    {parsedCurrentFormCode.isValidFormat ? (
+                      <div className="space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-[11px] font-extrabold text-emerald-800 flex items-center gap-1">
+                            <CheckCircle2 size={13} className="text-emerald-600" />
+                            Format Sesuai Aturan:
+                          </span>
+                          <span className="font-mono text-xs font-black px-2 py-0.5 rounded-lg bg-white border border-emerald-300 text-emerald-950 shadow-xs">
+                            {parsedCurrentFormCode.rawCode}
+                          </span>
+                          <span className="text-[10px] text-slate-500">•</span>
+                          <span className="text-[11px] text-slate-700 font-semibold">
+                            {parsedCurrentFormCode.breakdownSummary}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1 text-[10px] font-mono text-slate-600">
+                          <span className="px-1.5 py-0.5 bg-blue-100/80 rounded text-blue-900 font-bold" title="Kode 1: Kepemilikan">
+                            K1: {parsedCurrentFormCode.ownership?.code} ({parsedCurrentFormCode.ownership?.name})
+                          </span>
+                          <span>+</span>
+                          <span className="px-1.5 py-0.5 bg-emerald-100/80 rounded text-emerald-900 font-bold" title="Kode 2: Lokasi Kawasan">
+                            K2: {parsedCurrentFormCode.locationArea?.code} ({parsedCurrentFormCode.locationArea?.category})
+                          </span>
+                          <span>.</span>
+                          <span className="px-1.5 py-0.5 bg-amber-100/80 rounded text-amber-900 font-bold" title="Kode 3: Kategori Aset">
+                            K3: {parsedCurrentFormCode.category?.code} ({parsedCurrentFormCode.category?.name})
+                          </span>
+                          <span>+</span>
+                          <span className="px-1.5 py-0.5 bg-purple-100/80 rounded text-purple-900 font-bold" title="Kode 4: Jenis / Tipe Aset">
+                            K4: {parsedCurrentFormCode.type?.code} ({parsedCurrentFormCode.type?.name})
+                          </span>
+                          <span>.</span>
+                          <span className="px-1.5 py-0.5 bg-rose-100/80 rounded text-rose-900 font-bold" title="Kode 5: Tahun Perolehan">
+                            K5: {parsedCurrentFormCode.acquisitionYear}
+                          </span>
+                          <span>-</span>
+                          <span className="px-1.5 py-0.5 bg-cyan-100/80 rounded text-cyan-900 font-bold" title="Kode 6: Nomor Urut">
+                            K6: {parsedCurrentFormCode.sequenceNumber}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-2 text-[11px] text-amber-800">
+                        <div className="flex items-center gap-1.5">
+                          <AlertCircle size={14} className="text-amber-600 shrink-0" />
+                          <span>Kode aset saat ini menggunakan format kustom / non-standar.</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAutoGenerateCode(true);
+                            handleTriggerAutoGenerate();
+                          }}
+                          className="text-[11px] font-bold text-blue-700 hover:underline shrink-0 cursor-pointer"
+                        >
+                          Terapkan Standar TMII
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Kode Aset *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Kode Aset *
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {isAutoGenerateCode ? '(Auto-Sync Aktif)' : '(Manual)'}
+                    </span>
+                  </div>
                   <input 
                     type="text" 
                     required
                     value={formCode}
-                    onChange={e => setFormCode(e.target.value)}
-                    placeholder="Contoh: TMII-FA-001"
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm border border-slate-100"
+                    onChange={e => {
+                      setFormCode(e.target.value);
+                      if (isAutoGenerateCode) {
+                        setIsAutoGenerateCode(false);
+                      }
+                    }}
+                    placeholder="Contoh: BMN03.INF04.26-001"
+                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm font-mono font-bold text-slate-900 border border-slate-200 focus:ring-2 focus:ring-blue-500/30"
                   />
+                  <p className="mt-1 text-[10px] text-slate-500">
+                    Bisa diedit manual atau diisi otomatis oleh generator standar TMII.
+                  </p>
                 </div>
 
                 <div>
@@ -1084,19 +1398,54 @@ export default function FixedAssets({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Kepemilikan</label>
-                  <input 
-                    type="text" 
-                    value={formOwnership}
-                    onChange={e => setFormOwnership(e.target.value)}
-                    placeholder="Contoh: PT. Taman Wisata Candi / Milik Sendiri"
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm border border-slate-100"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Kepemilikan (Kode 1) *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsCustomOwnership(!isCustomOwnership)}
+                      className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
+                    >
+                      {isCustomOwnership ? 'Pilih Opsi Standar' : 'Ketik Manual'}
+                    </button>
+                  </div>
+                  {!isCustomOwnership ? (
+                    <select
+                      value={formOwnership}
+                      onChange={e => {
+                        const val = e.target.value;
+                        if (val === '__custom__') {
+                          setIsCustomOwnership(true);
+                          setFormOwnership('');
+                        } else {
+                          setFormOwnership(val);
+                        }
+                      }}
+                      className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm font-semibold text-slate-900 border border-slate-200 cursor-pointer"
+                    >
+                      <option value="">-- Pilih Entitas Kepemilikan (Standar TMII) --</option>
+                      {ASSET_OWNERSHIP_RULES.map(own => (
+                        <option key={own.code} value={own.name}>
+                          [{own.code}] {own.name}
+                        </option>
+                      ))}
+                      <option value="__custom__">+ Ketik Entitas Manual Lainnya</option>
+                    </select>
+                  ) : (
+                    <input 
+                      type="text" 
+                      value={formOwnership}
+                      onChange={e => setFormOwnership(e.target.value)}
+                      placeholder="Contoh: PT. Taman Wisata Candi / Milik Sendiri"
+                      className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm border border-slate-200"
+                    />
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                    Lokasi Penempatan * <span className="normal-case font-normal text-[11px] text-amber-800">(Fitur Auto-fill Ketik / Pilih)</span>
+                    Lokasi Penempatan * <span className="normal-case font-normal text-[11px] text-amber-800">(Terintegrasi Kode 2)</span>
                   </label>
                   <LocationAutoComplete
                     value={formLocation}
@@ -1111,7 +1460,7 @@ export default function FixedAssets({
                     required
                   />
                   <p className="mt-1 text-[11px] text-gray-500">
-                    Ketik kata kunci lokasi untuk mendapatkan saran auto-fill otomatis.
+                    Kategori lokasi terhubung otomatis ke segmen Kode 2 (01-11).
                   </p>
                 </div>
 
@@ -1133,7 +1482,7 @@ export default function FixedAssets({
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                    Kategori Aset <span className="normal-case font-normal text-[11px] text-amber-800">(Fitur Auto-fill Setting)</span>
+                    Kategori Aset <span className="normal-case font-normal text-[11px] text-amber-800">(Terintegrasi Kode 3)</span>
                   </label>
                   <select 
                     value={formCategory}
@@ -1146,21 +1495,32 @@ export default function FixedAssets({
                           setFormType(catObj.types[0]);
                         }
                       }
+                      // Jika kategori tanah dipilih, otomatis set parameter depresiasi ke 'Tidak Disusutkan'
+                      if (newCat.toLowerCase().includes('tanah')) {
+                        setFormDepreciationMethod('Tidak Disusutkan');
+                        setFormTaxGroup('tanah_non_depresiasi');
+                        setFormUsefulLife('Tidak Disusutkan');
+                        setFormSalvageValue(0);
+                      }
                     }}
                     className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm font-semibold text-slate-900 border border-slate-200 cursor-pointer"
                   >
                     <option value="">-- Pilih Kategori Aset --</option>
-                    {activeCategoriesList.map(cat => (
-                      <option key={cat.id || cat.category} value={cat.category}>
-                        {cat.category}
-                      </option>
-                    ))}
+                    {activeCategoriesList.map(cat => {
+                      const matchedRule = ASSET_CATEGORY_RULES.find(r => r.name.toLowerCase() === cat.category.toLowerCase() || cat.category.toLowerCase().includes(r.name.toLowerCase()));
+                      const codeBadge = matchedRule ? `[${matchedRule.code}] ` : '';
+                      return (
+                        <option key={cat.id || cat.category} value={cat.category}>
+                          {codeBadge}{cat.category}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                    Jenis Aset <span className="normal-case font-normal text-[11px] text-amber-800">(Turunan Kategori)</span>
+                    Jenis Aset <span className="normal-case font-normal text-[11px] text-purple-800">(Terintegrasi Kode 4)</span>
                   </label>
                   <select 
                     value={formType}
@@ -1194,7 +1554,9 @@ export default function FixedAssets({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Tanggal Perolehan</label>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Tanggal Perolehan <span className="normal-case font-normal text-[11px] text-rose-800">(Tahun = Kode 5)</span>
+                  </label>
                   <input 
                     type="date" 
                     value={formAcquisitionDate}
@@ -1214,15 +1576,177 @@ export default function FixedAssets({
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Masa Manfaat</label>
-                  <input 
-                    type="text" 
-                    value={formUsefulLife}
-                    onChange={e => setFormUsefulLife(e.target.value)}
-                    placeholder="Contoh: 5 Tahun / 10 Tahun"
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm border border-slate-100"
-                  />
+                {/* Depreciation & Useful Life Section */}
+                <div className="sm:col-span-2 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Calculator size={16} className="text-emerald-700" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-900">
+                        Parameter Depresiasi & Masa Manfaat
+                      </span>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 bg-emerald-200/60 text-emerald-800 rounded-full font-semibold">
+                      PSAK 16
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    {/* Pilihan Metode Depresiasi */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                        Metode Depresiasi
+                      </label>
+                      <select
+                        value={formDepreciationMethod}
+                        onChange={e => {
+                          const val = e.target.value as 'Garis Lurus' | 'Saldo Menurun' | 'Tidak Disusutkan';
+                          setFormDepreciationMethod(val);
+                          if (val === 'Tidak Disusutkan') {
+                            setFormTaxGroup('tanah_non_depresiasi');
+                            setFormUsefulLife('Tidak Disusutkan');
+                            setFormSalvageValue(0);
+                          } else if (formTaxGroup === 'tanah_non_depresiasi') {
+                            setFormTaxGroup('kelompok_1');
+                            setFormUsefulLife('4 Tahun');
+                          }
+                        }}
+                        className="w-full p-2 bg-white rounded-xl text-xs font-semibold border border-emerald-200 focus:outline-none cursor-pointer"
+                      >
+                        <option value="Garis Lurus">Garis Lurus (Straight-Line)</option>
+                        <option value="Tidak Disusutkan">🌱 Tidak Disusutkan (Tanah)</option>
+                        <option value="Saldo Menurun">Saldo Menurun (Declining)</option>
+                      </select>
+                    </div>
+
+                    {/* Golongan / Kelompok Pajak */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                        Golongan / Kelompok Pajak
+                      </label>
+                      <select
+                        value={formTaxGroup}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setFormTaxGroup(val);
+                          if (val === 'tanah_non_depresiasi') {
+                            setFormDepreciationMethod('Tidak Disusutkan');
+                            setFormUsefulLife('Tidak Disusutkan');
+                            setFormSalvageValue(0);
+                          } else {
+                            const grp = TAX_DEPRECIATION_GROUPS.find(g => g.id === val);
+                            if (grp) {
+                              setFormUsefulLife(`${grp.years} Tahun`);
+                              if (formDepreciationMethod === 'Tidak Disusutkan') {
+                                setFormDepreciationMethod('Garis Lurus');
+                              }
+                            }
+                          }
+                        }}
+                        className="w-full p-2 bg-white rounded-xl text-xs font-semibold border border-emerald-200 focus:outline-none cursor-pointer"
+                      >
+                        <option value="">-- Pilih Golongan Standar --</option>
+                        {TAX_DEPRECIATION_GROUPS.map(grp => (
+                          <option key={grp.id} value={grp.id}>
+                            {grp.name} {grp.ratePercent > 0 ? `(${grp.ratePercent}%/thn)` : '(0%)'}
+                          </option>
+                        ))}
+                        <option value="custom">Kustom (Input Bebas)</option>
+                      </select>
+                    </div>
+
+                    {/* Masa Manfaat */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                        Masa Manfaat
+                      </label>
+                      <input 
+                        type="text" 
+                        value={formUsefulLife}
+                        onChange={e => setFormUsefulLife(e.target.value)}
+                        disabled={formDepreciationMethod === 'Tidak Disusutkan'}
+                        placeholder={formDepreciationMethod === 'Tidak Disusutkan' ? 'Masa Tak Terbatas (Tanah)' : 'Contoh: 5 Tahun / 48 Bulan'}
+                        className={`w-full p-2 rounded-xl text-xs font-semibold border border-emerald-200 focus:outline-none ${
+                          formDepreciationMethod === 'Tidak Disusutkan' 
+                            ? 'bg-emerald-50/60 text-emerald-800 font-bold cursor-not-allowed' 
+                            : 'bg-white text-slate-900'
+                        }`}
+                      />
+                    </div>
+
+                    {/* Nilai Residu */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                        Nilai Residu (IDR)
+                      </label>
+                      <input 
+                        type="number" 
+                        value={formSalvageValue}
+                        onChange={e => setFormSalvageValue(Number(e.target.value))}
+                        disabled={formDepreciationMethod === 'Tidak Disusutkan'}
+                        placeholder={formDepreciationMethod === 'Tidak Disusutkan' ? '0 (Tanpa Residu)' : '0 (Bila habis tersusut)'}
+                        className={`w-full p-2 rounded-xl text-xs font-semibold border border-emerald-200 focus:outline-none ${
+                          formDepreciationMethod === 'Tidak Disusutkan' 
+                            ? 'bg-emerald-50/60 text-emerald-800 font-bold cursor-not-allowed' 
+                            : 'bg-white text-slate-900'
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Live Interactive Depreciation Preview */}
+                  {Number(formAcquisitionCost) > 0 && (
+                    <div className="text-xs">
+                      {formDepreciationMethod === 'Tidak Disusutkan' || formTaxGroup === 'tanah_non_depresiasi' || formUsefulLife.toLowerCase().includes('tidak disusutkan') ? (
+                        <div className="bg-emerald-100/80 p-3 rounded-xl border border-emerald-300 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-xl">🌱</span>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <strong className="text-emerald-950 font-bold">Aset Tanah (Tidak Disusutkan) — PSAK 16</strong>
+                                <span className="px-2 py-0.5 bg-emerald-200 text-emerald-900 text-[10px] font-extrabold rounded-md">
+                                  Non-Depreciable
+                                </span>
+                              </div>
+                              <p className="text-emerald-800 text-[11px] mt-0.5">
+                                Tanah memiliki masa manfaat tidak terbatas. Beban depresiasi per bulan: <strong className="text-emerald-950">Rp 0</strong>. Nilai buku di neraca tetap 100% utuh sebesar <strong className="text-emerald-950">{formatRupiah(Number(formAcquisitionCost) || 0)}</strong>.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-left sm:text-right shrink-0">
+                            <span className="inline-block text-[10px] uppercase tracking-wider font-extrabold px-2 py-1 bg-emerald-200 text-emerald-900 rounded-lg">
+                              Masa Manfaat Tak Terbatas
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-white/80 backdrop-blur-xs p-3 rounded-xl border border-emerald-200/60 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          {(() => {
+                            const cost = Number(formAcquisitionCost) || 0;
+                            const salvage = Number(formSalvageValue) || 0;
+                            const base = Math.max(0, cost - salvage);
+                            const parsed = parseUsefulLife(formUsefulLife, formDepreciationMethod);
+                            const monthly = Math.round(base / Math.max(1, parsed.months));
+                            const annual = Math.round(monthly * 12);
+                            return (
+                              <>
+                                <div className="flex items-center gap-2">
+                                  <Sparkles size={14} className="text-emerald-600 shrink-0" />
+                                  <div>
+                                    <span className="text-slate-500">Estimasi Beban Depresiasi:</span>{' '}
+                                    <strong className="text-amber-700 font-bold">{formatRupiah(monthly)} / bln</strong>{' '}
+                                    <span className="text-slate-400">({formatRupiah(annual)} / thn)</span>
+                                  </div>
+                                </div>
+                                <div className="text-[11px] text-emerald-800 font-bold">
+                                  Masa: {parsed.months} Periode Bulan ({parsed.years} Thn) • {formDepreciationMethod}
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -1540,9 +2064,9 @@ export default function FixedAssets({
                     onClick={() => setIsModalOpen(false)}
                     className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-sm transition-colors cursor-pointer"
                   >
-                    {isAdmin ? 'Batal' : 'Tutup'}
+                    {(!editingAsset || isAdmin) ? 'Batal' : 'Tutup'}
                   </button>
-                  {isAdmin && (
+                  {(!editingAsset || isAdmin) && (
                     <button 
                       type="submit"
                       className="px-5 py-2 text-white font-semibold rounded-xl text-sm shadow-md transition-colors cursor-pointer"
@@ -1797,6 +2321,14 @@ export default function FixedAssets({
                       <span className="text-[10px] font-bold text-slate-500 block uppercase">Terakhir Servis</span>
                       <span className="font-medium text-slate-800">{summaryAssetToPrint.lastMaintenance || '-'}</span>
                     </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-500 block uppercase">Petugas Registrasi</span>
+                      <span className="font-bold text-blue-700">{summaryAssetToPrint.createdByName || summaryAssetToPrint.createdBy || 'Staf TMII'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-500 block uppercase">Waktu Registrasi</span>
+                      <span className="font-medium text-slate-800">{summaryAssetToPrint.createdAt ? new Date(summaryAssetToPrint.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '-'}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -1940,6 +2472,17 @@ export default function FixedAssets({
         </div>
       )}
 
+      {/* Single Asset Depreciation Schedule Modal */}
+      {scheduleModalAsset && (
+        <AssetDepreciationScheduleModal
+          isOpen={Boolean(scheduleModalAsset)}
+          onClose={() => setScheduleModalAsset(null)}
+          asset={scheduleModalAsset}
+          targetYearMonth={new Date().toISOString().slice(0, 7)}
+          theme={theme}
+        />
+      )}
+
       {/* QR Camera Scanner Modal for Searching Assets */}
       <QRScannerModal
         isOpen={isQRScannerOpen}
@@ -1950,6 +2493,17 @@ export default function FixedAssets({
         }}
         title="Scan QR Code Aset"
         subtitle="Arahkan kamera HP ke label QR Code aset untuk pencarian otomatis"
+      />
+
+      {/* Batch Asset Code Generator & Standardization Modal */}
+      <BatchAssetCodeGeneratorModal
+        isOpen={isBatchCodeModalOpen}
+        onClose={() => setIsBatchCodeModalOpen(false)}
+        assets={assets}
+        configuredLocations={activeLocationsList}
+        configuredCategories={configuredCategories}
+        onUpdateAsset={onUpdateAsset}
+        theme={theme}
       />
     </div>
   );

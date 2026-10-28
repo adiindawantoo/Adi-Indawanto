@@ -25,9 +25,18 @@ import {
   Info,
   Map as MapIcon,
   Grid,
-  List
+  List,
+  Navigation,
+  FileSpreadsheet
 } from 'lucide-react';
-import { FixedAsset, AppTheme, ConfiguredLocation } from '../types';
+import { FixedAsset, AppTheme, ConfiguredLocation, DEFAULT_ASSET_LOCATIONS } from '../types';
+import { 
+  getGoogleMapsUrl, 
+  getGoogleDirectionsUrl, 
+  isValidLatLng, 
+  formatCoordinates 
+} from '../lib/geoUtils';
+import { exportConfiguredLocations } from '../lib/locationExporter';
 
 interface FixedAssetsLocationsProps {
   assets: FixedAsset[];
@@ -544,6 +553,47 @@ export default function FixedAssetsLocations({
     return SAMPLE_LOCATION_ASSETS;
   }, [assets]);
 
+  // Helper to find location coordinates from location name
+  const getLocationCoordinates = (locName: string): { latitude: number; longitude: number } | null => {
+    if (!locName) return null;
+    const clean = locName.trim().toLowerCase();
+    
+    // 1. Check in configuredLocations (exact)
+    if (configuredLocations && configuredLocations.length > 0) {
+      const matched = configuredLocations.find(l => l.name.trim().toLowerCase() === clean);
+      if (matched && typeof matched.latitude === 'number' && typeof matched.longitude === 'number') {
+        return { latitude: matched.latitude, longitude: matched.longitude };
+      }
+      // Partial in configuredLocations
+      const partialConfigured = configuredLocations.find(l => clean.includes(l.name.toLowerCase()) || l.name.toLowerCase().includes(clean));
+      if (partialConfigured && typeof partialConfigured.latitude === 'number' && typeof partialConfigured.longitude === 'number') {
+        return { latitude: partialConfigured.latitude, longitude: partialConfigured.longitude };
+      }
+    }
+    
+    // 2. Check in DEFAULT_ASSET_LOCATIONS exact match
+    const defaultMatched = DEFAULT_ASSET_LOCATIONS.find(l => l.name.trim().toLowerCase() === clean);
+    if (defaultMatched && typeof defaultMatched.latitude === 'number' && typeof defaultMatched.longitude === 'number') {
+      return { latitude: defaultMatched.latitude, longitude: defaultMatched.longitude };
+    }
+
+    // 3. Check aliases in DEFAULT_ASSET_LOCATIONS
+    const aliasMatched = DEFAULT_ASSET_LOCATIONS.find(l => 
+      l.aliases?.some(alias => alias.toLowerCase() === clean || clean.includes(alias.toLowerCase()) || alias.toLowerCase().includes(clean))
+    );
+    if (aliasMatched && typeof aliasMatched.latitude === 'number' && typeof aliasMatched.longitude === 'number') {
+      return { latitude: aliasMatched.latitude, longitude: aliasMatched.longitude };
+    }
+
+    // 4. Partial check in DEFAULT_ASSET_LOCATIONS
+    const partialMatch = DEFAULT_ASSET_LOCATIONS.find(l => clean.includes(l.name.toLowerCase()) || l.name.toLowerCase().includes(clean));
+    if (partialMatch && typeof partialMatch.latitude === 'number' && typeof partialMatch.longitude === 'number') {
+      return { latitude: partialMatch.latitude, longitude: partialMatch.longitude };
+    }
+    
+    return null;
+  };
+
   // Helper to determine asset region from area or location
   const getAssetRegionKey = (asset: FixedAsset): 'utara' | 'selatan' | 'barat' | 'timur' | 'pusat' => {
     const areaLower = (asset.area || '').toLowerCase();
@@ -648,6 +698,38 @@ export default function FixedAssetsLocations({
     }).format(amount);
   };
 
+  // Download configured locations in complete format
+  const [downloadingLocs, setDownloadingLocs] = useState(false);
+  const handleDownloadLocations = () => {
+    try {
+      setDownloadingLocs(true);
+      const locsToExport: ConfiguredLocation[] = (configuredLocations && configuredLocations.length > 0)
+        ? configuredLocations
+        : DEFAULT_ASSET_LOCATIONS.map((loc, idx) => ({
+            id: `default-${idx}`,
+            name: loc.name,
+            region: loc.region,
+            category: loc.category,
+            description: loc.description,
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            createdAt: ''
+          }));
+
+      const dateStr = new Date().toISOString().split('T')[0];
+      exportConfiguredLocations(locsToExport, {
+        format: 'xlsx',
+        fileName: `Daftar_Lokasi_Terkonfigurasi_TMII_${dateStr}`,
+        assets: allAssets,
+        sheetTitle: 'Lokasi Terkonfigurasi'
+      });
+    } catch (err: any) {
+      console.error('Error downloading locations:', err);
+    } finally {
+      setDownloadingLocs(false);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-12">
       
@@ -665,11 +747,21 @@ export default function FixedAssetsLocations({
           </p>
         </div>
 
-        {/* Master Map Reference Button */}
-        <div className="flex items-center gap-2 w-full md:w-auto">
+        {/* Buttons */}
+        <div className="flex items-center gap-2 w-full md:w-auto flex-wrap">
+          <button
+            onClick={handleDownloadLocations}
+            disabled={downloadingLocs}
+            className="flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+            title="Unduh seluruh kolom daftar lokasi terkonfigurasi dalam format Excel (.xlsx)"
+          >
+            <FileSpreadsheet size={16} className="text-emerald-200" />
+            <span>{downloadingLocs ? 'Mengunduh...' : 'Download Daftar Lokasi (.xlsx)'}</span>
+          </button>
+
           <button
             onClick={() => setIsMasterMapOpen(true)}
-            className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold text-slate-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-all cursor-pointer shadow-xs"
+            className="flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold text-slate-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-all cursor-pointer shadow-xs"
           >
             <MapIcon size={16} className="text-amber-700" />
             <span>Lihat Master Map Reference TMII</span>
@@ -1040,12 +1132,30 @@ export default function FixedAssetsLocations({
                   {selectedHotspot ? `Lokasi Terpilih: ${selectedHotspot.name}` : `Wilayah: ${selectedRegion === 'semua' ? 'Semua Wilayah TMII' : TMII_REGIONS.find(r => r.id === selectedRegion)?.name}`}
                 </span>
                 {selectedHotspot && (
-                  <button 
-                    onClick={() => setSelectedHotspot(null)}
-                    className="text-[10px] font-bold text-red-600 hover:underline cursor-pointer"
-                  >
-                    (Reset Lokasi)
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setSelectedHotspot(null)}
+                      className="text-[10px] font-bold text-red-600 hover:underline cursor-pointer"
+                    >
+                      (Reset Lokasi)
+                    </button>
+                    {(() => {
+                      const spotCoords = getLocationCoordinates(selectedHotspot.name);
+                      return (
+                        <a
+                          href={spotCoords ? getGoogleMapsUrl(selectedHotspot.name, spotCoords.latitude, spotCoords.longitude) : getGoogleMapsUrl(selectedHotspot.name)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors"
+                          title="Buka titik lokasi hotspot di Google Maps"
+                        >
+                          <Compass size={11} className="text-blue-600" />
+                          <span>Google Maps</span>
+                          <ExternalLink size={9} />
+                        </a>
+                      );
+                    })()}
+                  </div>
                 )}
               </div>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -1316,6 +1426,59 @@ export default function FixedAssetsLocations({
                   <p>{selectedAsset.notes}</p>
                 </div>
               )}
+
+              {/* Google Maps Coordinates Card */}
+              {(() => {
+                const coords = getLocationCoordinates(selectedAsset.location);
+                return (
+                  <div className="p-4 rounded-2xl bg-blue-50/90 border border-blue-200 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-xs font-black text-blue-950">
+                        <Compass size={16} className="text-blue-600" />
+                        <span>Titik Lokasi Google Maps</span>
+                      </div>
+                      {coords ? (
+                        <span className="text-[10px] font-mono font-bold bg-blue-100 text-blue-900 px-2.5 py-0.5 rounded-lg border border-blue-200/80">
+                          {formatCoordinates(coords.latitude, coords.longitude, 'decimal')}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-slate-500 bg-white/80 px-2 py-0.5 rounded-md">
+                          Pencarian Otomatis
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-[11px] text-blue-900/80 font-medium leading-relaxed">
+                      {coords
+                        ? `Lokasi "${selectedAsset.location}" telah terhubung dengan koordinat spasial GPS di area TMII.`
+                        : `Buka titik lokasi dan petunjuk arah menuju "${selectedAsset.location}" melalui Google Maps.`}
+                    </p>
+
+                    <div className="flex items-center gap-2 pt-1 flex-wrap">
+                      <a
+                        href={coords ? getGoogleMapsUrl(selectedAsset.location, coords.latitude, coords.longitude) : getGoogleMapsUrl(selectedAsset.location)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors"
+                      >
+                        <MapPin size={13} />
+                        <span>Buka di Google Maps</span>
+                        <ExternalLink size={11} />
+                      </a>
+
+                      <a
+                        href={coords ? getGoogleDirectionsUrl(selectedAsset.location, coords.latitude, coords.longitude) : getGoogleDirectionsUrl(selectedAsset.location)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white hover:bg-slate-100 text-blue-800 border border-blue-200 shadow-2xs transition-colors"
+                      >
+                        <Navigation size={13} className="text-emerald-600" />
+                        <span>Petunjuk Rute</span>
+                      </a>
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="pt-2 flex justify-end">
                 <button

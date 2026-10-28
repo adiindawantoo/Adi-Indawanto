@@ -12,7 +12,9 @@ import {
   MapPin,
   FileText,
   CalendarDays,
-  ArrowUpDown
+  ArrowUpDown,
+  UserCheck,
+  Clock
 } from 'lucide-react';
 import { MuseumCollection, AppTheme } from '../types';
 import { exportToExcel } from '../lib/excel';
@@ -229,17 +231,15 @@ export default function MuseumAssets({
             <FileSpreadsheet size={18} className="text-emerald-600" />
             <span>Ekspor Excel</span>
           </button>
-          {isAdmin && (
-            <button 
-              onClick={handleOpenAddModal}
-              className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
-              style={{ backgroundColor: theme.primaryColor }}
-              id="btn-add-museum-coll"
-            >
-              <Plus size={18} />
-              <span>Daftarkan Artefak</span>
-            </button>
-          )}
+          <button 
+            onClick={handleOpenAddModal}
+            className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
+            style={{ backgroundColor: theme.primaryColor }}
+            id="btn-add-museum-coll"
+          >
+            <Plus size={18} />
+            <span>Daftarkan Artefak</span>
+          </button>
         </div>
       </div>
 
@@ -381,13 +381,14 @@ export default function MuseumAssets({
                 <th className="py-4 px-6">Asal-Usul & Bahan</th>
                 <th className="py-4 px-6">Dimensi Fisik</th>
                 <th className="py-4 px-6">Kondisi Fisik</th>
+                <th className="py-4 px-6">Log Registrasi</th>
                 <th className="py-4 px-6 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
               {paginatedCollections.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-400">
+                  <td colSpan={8} className="text-center py-12 text-gray-400">
                     Tidak ada koleksi museum yang ditemukan.
                   </td>
                 </tr>
@@ -438,6 +439,15 @@ export default function MuseumAssets({
                       }`}>
                         {collection.condition}
                       </span>
+                    </td>
+                    {/* Log Registrasi */}
+                    <td className="py-4 px-6 text-xs">
+                      <div className="font-semibold text-slate-800 truncate" title={collection.createdByName || collection.createdBy || 'Staf TMII'}>
+                        {collection.createdByName || (collection.createdBy ? collection.createdBy.split('@')[0] : 'Staf TMII')}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-mono">
+                        {collection.createdAt ? new Date(collection.createdAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
+                      </div>
                     </td>
                     <td className="py-4 px-6 text-center">
                       <div className="flex items-center justify-center gap-2">
@@ -518,7 +528,34 @@ export default function MuseumAssets({
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <fieldset disabled={!isAdmin} className="space-y-4">
+              {/* Registration Log Banner */}
+              {editingCollection && (
+                <div className="p-3.5 bg-blue-50/80 border border-blue-200/80 rounded-2xl flex items-start sm:items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <UserCheck size={16} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900">
+                          Diregistrasi oleh: <span className="text-blue-700 font-extrabold">{editingCollection.createdByName || editingCollection.createdBy || 'Staf TMII'}</span>
+                        </span>
+                        {editingCollection.createdBy && editingCollection.createdByName && (
+                          <span className="text-[11px] text-slate-500 font-mono">({editingCollection.createdBy})</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] text-slate-600 mt-0.5 font-medium">
+                        <Clock size={12} className="text-slate-400" />
+                        <span>Waktu Registrasi: {editingCollection.createdAt ? new Date(editingCollection.createdAt).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' }) : 'Tidak tercatat'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span className="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                    Log Sistem
+                  </span>
+                </div>
+              )}
+              <fieldset disabled={editingCollection !== null && !isAdmin} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Nomor Register Koleksi *</label>
@@ -652,9 +689,9 @@ export default function MuseumAssets({
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-sm transition-colors cursor-pointer"
                 >
-                  {isAdmin ? 'Batal' : 'Tutup'}
+                  {(!editingCollection || isAdmin) ? 'Batal' : 'Tutup'}
                 </button>
-                {isAdmin && (
+                {(!editingCollection || isAdmin) && (
                   <button 
                     type="submit"
                     className="px-5 py-2 text-white font-semibold rounded-xl text-sm shadow-md transition-colors cursor-pointer"

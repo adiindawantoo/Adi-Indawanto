@@ -8,6 +8,7 @@ interface QRScannerModalProps {
   onScanResult: (scannedText: string) => void;
   title?: string;
   subtitle?: string;
+  defaultContinuousMode?: boolean;
 }
 
 export default function QRScannerModal({
@@ -15,14 +16,15 @@ export default function QRScannerModal({
   onClose,
   onScanResult,
   title = 'Scan QR / Barcode Aset',
-  subtitle = 'Arahkan kamera ke QR Code / Barcode yang tertera pada label aset fisik TMII'
+  subtitle = 'Arahkan kamera ke QR Code / Barcode yang tertera pada label aset fisik TMII',
+  defaultContinuousMode = true
 }: QRScannerModalProps) {
   const [scannerError, setScannerError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [lastScanned, setLastScanned] = useState<string | null>(null);
   const [cameras, setCameras] = useState<Array<{ id: string; label: string }>>([]);
   const [selectedCameraId, setSelectedCameraId] = useState<string>('');
-  const [continuousMode, setContinuousMode] = useState<boolean>(true);
+  const [continuousMode, setContinuousMode] = useState<boolean>(defaultContinuousMode);
   const [scanHistoryCount, setScanHistoryCount] = useState<number>(0);
   
   const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -39,6 +41,7 @@ export default function QRScannerModal({
     setScannerError(null);
     setLastScanned(null);
     setScanHistoryCount(0);
+    setContinuousMode(defaultContinuousMode);
 
     // Get available cameras first
     Html5Qrcode.getCameras()

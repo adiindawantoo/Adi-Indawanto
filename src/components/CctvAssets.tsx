@@ -12,7 +12,9 @@ import {
   RefreshCw,
   Cpu,
   MapPin,
-  ArrowUpDown
+  ArrowUpDown,
+  UserCheck,
+  Clock
 } from 'lucide-react';
 import { CctvAsset, AppTheme, ConfiguredLocation, DEFAULT_ASSET_LOCATIONS, TmiiRegionName } from '../types';
 import { exportToExcel } from '../lib/excel';
@@ -235,17 +237,15 @@ export default function CctvAssets({
             <FileSpreadsheet size={18} className="text-emerald-600" />
             <span>Ekspor Excel</span>
           </button>
-          {isAdmin && (
-            <button 
-              onClick={handleOpenAddModal}
-              className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
-              style={{ backgroundColor: theme.primaryColor }}
-              id="btn-add-cctv"
-            >
-              <Plus size={18} />
-              <span>Daftarkan CCTV</span>
-            </button>
-          )}
+          <button 
+            onClick={handleOpenAddModal}
+            className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
+            style={{ backgroundColor: theme.primaryColor }}
+            id="btn-add-cctv"
+          >
+            <Plus size={18} />
+            <span>Daftarkan CCTV</span>
+          </button>
         </div>
       </div>
 
@@ -371,13 +371,14 @@ export default function CctvAssets({
                 <th className="py-4 px-6">IP Address</th>
                 <th className="py-4 px-6">Status Keaktifan</th>
                 <th className="py-4 px-6">Pemeliharaan Terakhir</th>
+                <th className="py-4 px-6">Log Registrasi</th>
                 <th className="py-4 px-6 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
               {paginatedCctvs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-400">
+                  <td colSpan={8} className="text-center py-12 text-gray-400">
                     Tidak ada kamera CCTV yang ditemukan.
                   </td>
                 </tr>
@@ -429,6 +430,15 @@ export default function CctvAssets({
                       <div className="flex items-center gap-1.5">
                         <RefreshCw size={12} className="text-gray-400" />
                         <span>{cctv.lastMaintenance || 'Belum di-servis'}</span>
+                      </div>
+                    </td>
+                    {/* Log Registrasi */}
+                    <td className="py-4 px-6 text-xs">
+                      <div className="font-semibold text-slate-800 truncate" title={cctv.createdByName || cctv.createdBy || 'Staf TMII'}>
+                        {cctv.createdByName || (cctv.createdBy ? cctv.createdBy.split('@')[0] : 'Staf TMII')}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-mono">
+                        {cctv.createdAt ? new Date(cctv.createdAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
                       </div>
                     </td>
                     <td className="py-4 px-6 text-center">
@@ -510,7 +520,34 @@ export default function CctvAssets({
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <fieldset disabled={!isAdmin} className="space-y-4">
+              {/* Registration Log Banner */}
+              {editingCctv && (
+                <div className="p-3.5 bg-blue-50/80 border border-blue-200/80 rounded-2xl flex items-start sm:items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <UserCheck size={16} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900">
+                          Diregistrasi oleh: <span className="text-blue-700 font-extrabold">{editingCctv.createdByName || editingCctv.createdBy || 'Staf TMII'}</span>
+                        </span>
+                        {editingCctv.createdBy && editingCctv.createdByName && (
+                          <span className="text-[11px] text-slate-500 font-mono">({editingCctv.createdBy})</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] text-slate-600 mt-0.5 font-medium">
+                        <Clock size={12} className="text-slate-400" />
+                        <span>Waktu Registrasi: {editingCctv.createdAt ? new Date(editingCctv.createdAt).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' }) : 'Tidak tercatat'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span className="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                    Log Sistem
+                  </span>
+                </div>
+              )}
+              <fieldset disabled={editingCctv !== null && !isAdmin} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Kode Kamera *</label>
@@ -616,9 +653,9 @@ export default function CctvAssets({
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-sm transition-colors cursor-pointer"
                 >
-                  {isAdmin ? 'Batal' : 'Tutup'}
+                  {(!editingCctv || isAdmin) ? 'Batal' : 'Tutup'}
                 </button>
-                {isAdmin && (
+                {(!editingCctv || isAdmin) && (
                   <button 
                     type="submit"
                     className="px-5 py-2 text-white font-semibold rounded-xl text-sm shadow-md transition-colors cursor-pointer"

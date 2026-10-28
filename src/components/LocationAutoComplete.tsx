@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { MapPin, Check, ChevronDown } from 'lucide-react';
+import { MapPin, Check, ChevronDown, Compass } from 'lucide-react';
 import { ConfiguredLocation, DEFAULT_ASSET_LOCATIONS, TmiiRegionName } from '../types';
 
 interface LocationAutoCompleteProps {
@@ -42,6 +42,8 @@ export default function LocationAutoComplete({
       region: loc.region,
       category: loc.category,
       description: loc.description,
+      latitude: loc.latitude,
+      longitude: loc.longitude,
       createdAt: ''
     }));
   }, [effectiveLocationsList]);
@@ -146,6 +148,15 @@ export default function LocationAutoComplete({
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                  {typeof loc.latitude === 'number' && typeof loc.longitude === 'number' && (
+                    <span 
+                      className="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-blue-100 text-blue-800 flex items-center gap-0.5" 
+                      title={`Titik Koordinat: ${loc.latitude}, ${loc.longitude}`}
+                    >
+                      <Compass size={10} className="text-blue-600" />
+                      <span>GPS</span>
+                    </span>
+                  )}
                   {loc.category && (
                     <span className="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-slate-100 text-slate-700">
                       {loc.category}

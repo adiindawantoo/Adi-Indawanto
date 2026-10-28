@@ -444,6 +444,22 @@ export default function Dashboard({
 
                 <div className="space-y-2">
                   <button
+                    onClick={() => setActiveTab('fixed-assets-locations')}
+                    className={`w-full p-3 rounded-xl border text-left flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer ${subCardBg} border-blue-500/30 bg-blue-50/20`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600">
+                        <MapPin size={16} />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-blue-900 dark:text-blue-300">Peta Interaktif Sebaran Aset</div>
+                        <div className={`text-[10px] ${textMuted}`}>Visualisasi GIS titik koordinat & GPS TMII</div>
+                      </div>
+                    </div>
+                    <ChevronRight size={16} className={textMuted} />
+                  </button>
+
+                  <button
                     onClick={() => setActiveTab('fixed-assets-tagging')}
                     className={`w-full p-3 rounded-xl border text-left flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer ${subCardBg}`}
                   >

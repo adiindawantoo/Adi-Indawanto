@@ -52,7 +52,12 @@ import {
   ShieldAlert,
   Cloud,
   RefreshCw,
-  Menu
+  Menu,
+  Smartphone,
+  AlertTriangle,
+  ChevronRight,
+  FileCode2,
+  SlidersHorizontal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -60,11 +65,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import Dashboard from './components/Dashboard';
 import TaskManagement from './components/TaskManagement';
 import FixedAssets from './components/FixedAssets';
+import FixedAssetsDepreciation from './components/FixedAssetsDepreciation';
 import FixedAssetsMaintenance from './components/FixedAssetsMaintenance';
 import FixedAssetsTagging from './components/FixedAssetsTagging';
 import FixedAssetsMutation from './components/FixedAssetsMutation';
 import FixedAssetsOpname from './components/FixedAssetsOpname';
 import FixedAssetsLocations from './components/FixedAssetsLocations';
+import InteractiveAssetMap from './components/InteractiveAssetMap';
 import AnimalAssets from './components/AnimalAssets';
 import CctvAssets from './components/CctvAssets';
 import MepAssets from './components/MepAssets';
@@ -72,6 +79,8 @@ import MuseumAssets from './components/MuseumAssets';
 import WhitelistSettings from './components/WhitelistSettings';
 import TmiiLogo from './components/TmiiLogo';
 import BatikBackground, { BatikKawung, BatikSongket, BatikDayak, BatikToraja, BatikAsmat } from './components/BatikBackground';
+import AddToHomeScreenModal from './components/AddToHomeScreenModal';
+import GuestReportPortal from './components/GuestReportPortal';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -83,9 +92,34 @@ export default function App() {
   const whitelistUnsubscribeRef = useRef<(() => void) | null>(null);
 
   // Active navigation tab
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'tasks' | 'fixed-assets' | 'fixed-assets-maintenance' | 'fixed-assets-tagging' | 'fixed-assets-mutation' | 'fixed-assets-opname' | 'fixed-assets-locations' | 'animals' | 'cctv' | 'mep' | 'museum' | 'whitelist'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'tasks' | 'fixed-assets' | 'fixed-assets-depreciation' | 'fixed-assets-maintenance' | 'fixed-assets-tagging' | 'fixed-assets-mutation' | 'fixed-assets-opname' | 'fixed-assets-locations' | 'animals' | 'cctv' | 'mep' | 'museum' | 'whitelist'>('dashboard');
 
   const [isFixedAssetsMenuOpen, setIsFixedAssetsMenuOpen] = useState(false);
+  const [isAddToHomeModalOpen, setIsAddToHomeModalOpen] = useState(false);
+
+  // Guest portal access state (allows visitors/guests to report issues without login)
+  const [isGuestPortalOpen, setIsGuestPortalOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('mode') === 'guest-report' || window.location.hash === '#guest-report' || params.get('lapor') === 'true';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handleUrlCheck = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('mode') === 'guest-report' || window.location.hash === '#guest-report' || params.get('lapor') === 'true') {
+        setIsGuestPortalOpen(true);
+      }
+    };
+    window.addEventListener('popstate', handleUrlCheck);
+    window.addEventListener('hashchange', handleUrlCheck);
+    return () => {
+      window.removeEventListener('popstate', handleUrlCheck);
+      window.removeEventListener('hashchange', handleUrlCheck);
+    };
+  }, []);
 
   // Keep menu open if active tab is a fixed asset sub-tab
   useEffect(() => {
@@ -460,12 +494,26 @@ export default function App() {
     }
   };
 
+  // Helper for audit / registration logging
+  const getRegistrarInfo = () => {
+    const email = currentUser?.email || '';
+    const name = currentUser?.displayName || (email ? email.split('@')[0] : 'Staf TMII');
+    return {
+      createdBy: email || 'user',
+      createdByName: name,
+      createdAt: new Date().toISOString()
+    };
+  };
+
   // -- Fixed Asset Database --
   const handleAddFixedAsset = async (assetData: Omit<FixedAsset, 'id' | 'createdAt'>) => {
     try {
+      const reg = getRegistrarInfo();
       await addDoc(collection(db, 'fixed_asset'), {
         ...assetData,
-        createdAt: new Date().toISOString()
+        createdBy: reg.createdBy,
+        createdByName: reg.createdByName,
+        createdAt: reg.createdAt
       });
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, 'fixed_asset');
@@ -491,9 +539,12 @@ export default function App() {
   // -- Animal Assets --
   const handleAddAnimal = async (animalData: Omit<AnimalAsset, 'id' | 'createdAt'>) => {
     try {
+      const reg = getRegistrarInfo();
       await addDoc(collection(db, 'animal'), {
         ...animalData,
-        createdAt: new Date().toISOString()
+        createdBy: reg.createdBy,
+        createdByName: reg.createdByName,
+        createdAt: reg.createdAt
       });
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, 'animal');
@@ -519,9 +570,12 @@ export default function App() {
   // -- CCTV --
   const handleAddCctv = async (cctvData: Omit<CctvAsset, 'id' | 'createdAt'>) => {
     try {
+      const reg = getRegistrarInfo();
       await addDoc(collection(db, 'cctv'), {
         ...cctvData,
-        createdAt: new Date().toISOString()
+        createdBy: reg.createdBy,
+        createdByName: reg.createdByName,
+        createdAt: reg.createdAt
       });
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, 'cctv');
@@ -547,9 +601,12 @@ export default function App() {
   // -- MEP --
   const handleAddMep = async (mepData: Omit<MepAsset, 'id' | 'createdAt'>) => {
     try {
+      const reg = getRegistrarInfo();
       await addDoc(collection(db, 'mep'), {
         ...mepData,
-        createdAt: new Date().toISOString()
+        createdBy: reg.createdBy,
+        createdByName: reg.createdByName,
+        createdAt: reg.createdAt
       });
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, 'mep');
@@ -575,9 +632,12 @@ export default function App() {
   // -- Museum Collections --
   const handleAddMuseumCollection = async (museumData: Omit<MuseumCollection, 'id' | 'createdAt'>) => {
     try {
+      const reg = getRegistrarInfo();
       await addDoc(collection(db, 'museum_collection'), {
         ...museumData,
-        createdAt: new Date().toISOString()
+        createdBy: reg.createdBy,
+        createdByName: reg.createdByName,
+        createdAt: reg.createdAt
       });
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, 'museum_collection');
@@ -601,37 +661,68 @@ export default function App() {
   };
 
   // -- Location Settings --
-  const handleAddLocation = async (name: string, region: TmiiRegionName, category?: string, description?: string) => {
+  const handleAddLocation = async (
+    name: string,
+    region: TmiiRegionName,
+    category?: string,
+    description?: string,
+    latitude?: number,
+    longitude?: number
+  ) => {
     try {
-      await addDoc(collection(db, 'asset_location'), {
+      const data: Record<string, any> = {
         name: name.trim(),
         region,
         category: category?.trim() || 'Area Makro TMII',
         description: description?.trim() || '',
         createdAt: new Date().toISOString()
-      });
+      };
+      if (typeof latitude === 'number' && !isNaN(latitude)) {
+        data.latitude = latitude;
+      }
+      if (typeof longitude === 'number' && !isNaN(longitude)) {
+        data.longitude = longitude;
+      }
+      await addDoc(collection(db, 'asset_location'), data);
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, 'asset_location');
     }
   };
 
-  const handleUpdateLocation = async (id: string, name: string, region: TmiiRegionName, category?: string, description?: string) => {
+  const handleUpdateLocation = async (
+    id: string,
+    name: string,
+    region: TmiiRegionName,
+    category?: string,
+    description?: string,
+    latitude?: number,
+    longitude?: number
+  ) => {
     try {
+      const data: Record<string, any> = {
+        name: name.trim(),
+        region,
+        category: category?.trim() || 'Area Makro TMII',
+        description: description?.trim() || ''
+      };
+      if (typeof latitude === 'number' && !isNaN(latitude)) {
+        data.latitude = latitude;
+      } else {
+        data.latitude = null;
+      }
+      if (typeof longitude === 'number' && !isNaN(longitude)) {
+        data.longitude = longitude;
+      } else {
+        data.longitude = null;
+      }
+
       if (id.startsWith('default-')) {
         await addDoc(collection(db, 'asset_location'), {
-          name: name.trim(),
-          region,
-          category: category?.trim() || 'Area Makro TMII',
-          description: description?.trim() || '',
+          ...data,
           createdAt: new Date().toISOString()
         });
       } else {
-        await updateDoc(doc(db, 'asset_location', id), {
-          name: name.trim(),
-          region,
-          category: category?.trim() || 'Area Makro TMII',
-          description: description?.trim() || ''
-        });
+        await updateDoc(doc(db, 'asset_location', id), data);
       }
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `asset_location/${id}`);
@@ -649,12 +740,29 @@ export default function App() {
   const handleSeedDefaultLocations = async () => {
     try {
       for (const item of DEFAULT_ASSET_LOCATIONS) {
-        const exists = assetLocations.some(l => l.name.toLowerCase() === item.name.toLowerCase());
-        if (!exists) {
-          await addDoc(collection(db, 'asset_location'), {
-            ...item,
+        const existing = assetLocations.find(l => l.name.toLowerCase().trim() === item.name.toLowerCase().trim());
+        if (!existing) {
+          const data: Record<string, any> = {
+            name: item.name,
+            region: item.region,
+            category: item.category,
+            description: item.description || '',
             createdAt: new Date().toISOString()
-          });
+          };
+          if (typeof item.latitude === 'number') data.latitude = item.latitude;
+          if (typeof item.longitude === 'number') data.longitude = item.longitude;
+          await addDoc(collection(db, 'asset_location'), data);
+        } else if (!existing.id.startsWith('default-')) {
+          // Update existing Firestore document to calibrated satellite coordinates and metadata
+          const updateData: Record<string, any> = {
+            region: item.region,
+            category: item.category,
+            updatedAt: new Date().toISOString()
+          };
+          if (typeof item.latitude === 'number') updateData.latitude = item.latitude;
+          if (typeof item.longitude === 'number') updateData.longitude = item.longitude;
+          if (item.description && !existing.description) updateData.description = item.description;
+          await updateDoc(doc(db, 'asset_location', existing.id), updateData);
         }
       }
     } catch (err) {
@@ -771,6 +879,22 @@ export default function App() {
       throw err;
     }
   };
+
+  // Guest reporting portal view (accessible by visitors without login)
+  if (isGuestPortalOpen) {
+    return (
+      <GuestReportPortal 
+        configuredLocations={assetLocations}
+        onBackToLogin={() => {
+          setIsGuestPortalOpen(false);
+          const url = new URL(window.location.href);
+          url.searchParams.delete('mode');
+          url.searchParams.delete('lapor');
+          window.history.replaceState(null, '', url.pathname + (url.search ? url.search : ''));
+        }} 
+      />
+    );
+  }
 
   // Beautiful render loading
   if (loading) {
@@ -949,6 +1073,35 @@ export default function App() {
                 <span>Masuk dengan Google</span>
               </button>
 
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-slate-200/80"></div>
+                <span className="flex-shrink mx-3 text-slate-400 text-[11px] font-bold uppercase tracking-wider">Akses Publik / Tamu</span>
+                <div className="flex-grow border-t border-slate-200/80"></div>
+              </div>
+
+              {/* Guest Report Portal Trigger Button */}
+              <button
+                type="button"
+                onClick={() => setIsGuestPortalOpen(true)}
+                className="w-full inline-flex items-center justify-between p-3.5 bg-emerald-50/80 hover:bg-emerald-100/90 text-slate-900 rounded-2xl border border-emerald-300/80 transition-all text-left cursor-pointer group shadow-2xs"
+                id="btn-guest-report-portal"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#0B6B5D] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <AlertTriangle size={20} />
+                  </div>
+                  <div>
+                    <div className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-emerald-900 transition-colors">
+                      Lapor Kerusakan / Pemindahan Aset
+                    </div>
+                    <div className="text-[11px] text-slate-500 font-medium">
+                      Akses Khusus Tamu & Pengunjung (Tanpa Perlu Login)
+                    </div>
+                  </div>
+                </div>
+                <ChevronRight size={18} className="text-emerald-700 group-hover:translate-x-1 transition-transform shrink-0" />
+              </button>
+
               <div className="text-xs sm:text-sm text-slate-500 leading-relaxed pt-1 max-w-xs mx-auto font-medium">
                 Khusus akun Google Workspace / Email Resmi Karyawan TMII yang terdaftar dalam Whitelist Otorisasi.
               </div>
@@ -1038,6 +1191,8 @@ export default function App() {
               <div className="pl-4 space-y-1 mt-1 border-l-2 border-slate-100 ml-6">
                 {[
                   { id: 'fixed-assets', label: 'Database' },
+                  { id: 'fixed-assets-depreciation', label: 'Depresiasi & Nilai Buku' },
+                  { id: 'fixed-assets-locations', label: 'Peta Sebaran Aset' },
                   { id: 'fixed-assets-maintenance', label: 'Pemeliharaan / Maintenance' },
                   { id: 'fixed-assets-tagging', label: 'Cetak Tagging' },
                   { id: 'fixed-assets-mutation', label: 'Pemindahan / Mutasi' },
@@ -1069,7 +1224,7 @@ export default function App() {
             { id: 'cctv', label: 'CCTV Keamanan', icon: Camera },
             { id: 'mep', label: 'Aset MEP', icon: Settings2 },
             { id: 'museum', label: 'Koleksi Museum', icon: BookOpen },
-            ...(isUserAdmin() ? [{ id: 'whitelist', label: 'Pengaturan', icon: Users }] : [])
+            { id: 'whitelist', label: 'Pengaturan', icon: isUserAdmin() ? Users : FileCode2 }
           ].map(item => {
             const isActive = activeTab === item.id;
             const Icon = item.icon;
@@ -1150,7 +1305,7 @@ export default function App() {
               {activeTab === 'cctv' && 'Sistem CCTV Keamanan'}
               {activeTab === 'mep' && 'Aset MEP'}
               {activeTab === 'museum' && 'Koleksi Museum Nusantara'}
-              {activeTab === 'whitelist' && 'Pengaturan Sistem'}
+              {activeTab === 'whitelist' && (isUserAdmin() ? 'Pengaturan Sistem' : 'Pengaturan - Aturan Kode Aset')}
             </h2>
           </div>
 
@@ -1204,7 +1359,29 @@ export default function App() {
                 <RefreshCw size={14} className={isSyncLoading ? "animate-spin" : ""} />
                 <span>{isSyncLoading ? 'Sinkronisasi...' : 'Sinkron'}</span>
               </button>
+
+              {/* Install App / Add to Home Screen Button */}
+              <button
+                type="button"
+                onClick={() => setIsAddToHomeModalOpen(true)}
+                className="flex items-center gap-2 px-3.5 py-2 border border-amber-300 rounded-xl text-xs font-bold text-amber-900 bg-gradient-to-r from-amber-100 to-amber-50 hover:from-amber-200 hover:to-amber-100 transition-all cursor-pointer shadow-xs active:scale-95"
+                title="Tambahkan Aplikasi ke Layar Utama HP (PWA)"
+              >
+                <Smartphone size={15} className="text-amber-600 shrink-0" />
+                <span>Tambah ke Layar Utama</span>
+              </button>
             </div>
+
+            {/* Mobile Install App quick button next to Menu */}
+            <button
+              type="button"
+              onClick={() => setIsAddToHomeModalOpen(true)}
+              className="sm:hidden p-2 text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+              title="Tambah ke Layar Utama HP"
+            >
+              <Smartphone size={16} className="text-amber-700" />
+              <span className="text-[10px]">Layar Utama</span>
+            </button>
 
             {/* Mobile Menu Trigger Button (Menu Icon) */}
             <button 
@@ -1341,7 +1518,26 @@ export default function App() {
                 </div>
 
                 {/* Theme Switcher in Mobile Drawer */}
-                <div className="p-6 pb-3 border-b border-slate-100 space-y-2">
+                <div className="p-6 pb-3 border-b border-slate-100 space-y-3">
+                  {/* PWA Install Button Banner in Drawer */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddToHomeModalOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full p-3 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black text-xs rounded-2xl flex items-center justify-between shadow-md active:scale-98 transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Smartphone size={18} />
+                      <div className="text-left">
+                        <div>Tambah ke Layar Utama</div>
+                        <div className="text-[9px] font-bold text-slate-800 opacity-80">Instal Aplikasi di HP / Tablet</div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] uppercase font-black bg-slate-950 text-amber-400 px-2 py-0.5 rounded-lg">PWA</span>
+                  </button>
+
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Tema Aplikasi</span>
                   <div className="bg-slate-100/70 border border-slate-200/20 px-2 py-1.5 rounded-full flex items-center justify-between gap-2">
                     {APP_THEMES.map(tTheme => {
@@ -1420,6 +1616,8 @@ export default function App() {
                       <div className="pl-4 space-y-1 mt-1 border-l-2 border-slate-100 ml-6">
                         {[
                           { id: 'fixed-assets', label: 'Database' },
+                          { id: 'fixed-assets-depreciation', label: 'Depresiasi & Nilai Buku' },
+                          { id: 'fixed-assets-locations', label: 'Peta Sebaran Aset' },
                           { id: 'fixed-assets-maintenance', label: 'Pemeliharaan / Maintenance' },
                           { id: 'fixed-assets-tagging', label: 'Cetak Tagging' },
                           { id: 'fixed-assets-mutation', label: 'Pemindahan / Mutasi' },
@@ -1454,7 +1652,7 @@ export default function App() {
                     { id: 'cctv', label: 'CCTV Keamanan', icon: Camera },
                     { id: 'mep', label: 'Aset MEP', icon: Settings2 },
                     { id: 'museum', label: 'Koleksi Museum', icon: BookOpen },
-                    ...(isUserAdmin() ? [{ id: 'whitelist', label: 'Pengaturan', icon: Users }] : [])
+                    { id: 'whitelist', label: 'Pengaturan', icon: isUserAdmin() ? Users : FileCode2 }
                   ].map(item => {
                     const isActive = activeTab === item.id;
                     const Icon = item.icon;
@@ -1568,6 +1766,7 @@ export default function App() {
                   googleAccessToken={googleToken}
                   isAdmin={isUserAdmin()}
                   theme={currentTheme}
+                  userEmail={currentUser?.displayName || currentUser?.email}
                 />
               )}
 
@@ -1582,6 +1781,27 @@ export default function App() {
                   isAdmin={isUserAdmin()}
                   googleAccessToken={googleToken}
                   theme={currentTheme}
+                  onNavigateToDepreciation={() => setActiveTab('fixed-assets-depreciation')}
+                />
+              )}
+
+              {activeTab === 'fixed-assets-depreciation' && (
+                <FixedAssetsDepreciation
+                  assets={fixedAssets}
+                  configuredLocations={assetLocations}
+                  configuredCategories={assetCategories}
+                  theme={currentTheme}
+                  onUpdateAsset={handleUpdateFixedAsset}
+                  isAdmin={isUserAdmin()}
+                />
+              )}
+
+              {activeTab === 'fixed-assets-locations' && (
+                <InteractiveAssetMap 
+                  fixedAssets={fixedAssets}
+                  configuredLocations={assetLocations}
+                  theme={currentTheme}
+                  currentUserDisplayName={currentUser?.displayName}
                 />
               )}
 
@@ -1699,6 +1919,9 @@ export default function App() {
                     meps: meps.length,
                     museumCollections: museumCollections.length
                   }}
+                  fixedAssets={fixedAssets}
+                  theme={currentTheme}
+                  isAdmin={isUserAdmin()}
                 />
               )}
             </motion.div>
@@ -1742,6 +1965,12 @@ export default function App() {
             </div>
           )}
         </AnimatePresence>
+
+        {/* Add To Home Screen PWA Modal Guide */}
+        <AddToHomeScreenModal
+          isOpen={isAddToHomeModalOpen}
+          onClose={() => setIsAddToHomeModalOpen(false)}
+        />
 
       </div>
     </div>

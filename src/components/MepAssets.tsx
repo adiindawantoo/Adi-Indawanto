@@ -15,7 +15,9 @@ import {
   Droplet,
   MapPin,
   CalendarDays,
-  ArrowUpDown
+  ArrowUpDown,
+  UserCheck,
+  Clock
 } from 'lucide-react';
 import { MepAsset, AppTheme, ConfiguredLocation, DEFAULT_ASSET_LOCATIONS, TmiiRegionName } from '../types';
 import { exportToExcel } from '../lib/excel';
@@ -271,17 +273,15 @@ export default function MepAssets({
             <FileSpreadsheet size={18} className="text-emerald-600" />
             <span>Ekspor Excel</span>
           </button>
-          {isAdmin && (
-            <button 
-              onClick={handleOpenAddModal}
-              className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
-              style={{ backgroundColor: theme.primaryColor }}
-              id="btn-add-mep"
-            >
-              <Plus size={18} />
-              <span>Registrasi MEP</span>
-            </button>
-          )}
+          <button 
+            onClick={handleOpenAddModal}
+            className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
+            style={{ backgroundColor: theme.primaryColor }}
+            id="btn-add-mep"
+          >
+            <Plus size={18} />
+            <span>Registrasi MEP</span>
+          </button>
         </div>
       </div>
 
@@ -423,13 +423,14 @@ export default function MepAssets({
                 <th className="py-4 px-6">Lokasi / Gedung</th>
                 <th className="py-4 px-6">Status Operasional</th>
                 <th className="py-4 px-6">Jadwal Perawatan Berkala</th>
+                <th className="py-4 px-6">Log Registrasi</th>
                 <th className="py-4 px-6 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
               {paginatedMeps.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-400">
+                  <td colSpan={8} className="text-center py-12 text-gray-400">
                     Tidak ada perangkat MEP yang ditemukan.
                   </td>
                 </tr>
@@ -485,6 +486,15 @@ export default function MepAssets({
                       <div className="text-gray-900 font-semibold mt-1 text-[11px] flex items-center gap-1">
                         <CalendarDays size={12} style={{ color: theme.primaryColor }} />
                         <span>Berikutnya: {mep.nextMaintenance || '-'} ({mep.maintenanceFrequency})</span>
+                      </div>
+                    </td>
+                    {/* Log Registrasi */}
+                    <td className="py-4 px-6 text-xs">
+                      <div className="font-semibold text-slate-800 truncate" title={mep.createdByName || mep.createdBy || 'Staf TMII'}>
+                        {mep.createdByName || (mep.createdBy ? mep.createdBy.split('@')[0] : 'Staf TMII')}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-mono">
+                        {mep.createdAt ? new Date(mep.createdAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
                       </div>
                     </td>
                     <td className="py-4 px-6 text-center">
@@ -566,7 +576,34 @@ export default function MepAssets({
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <fieldset disabled={!isAdmin} className="space-y-4">
+              {/* Registration Log Banner */}
+              {editingMep && (
+                <div className="p-3.5 bg-blue-50/80 border border-blue-200/80 rounded-2xl flex items-start sm:items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <UserCheck size={16} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900">
+                          Diregistrasi oleh: <span className="text-blue-700 font-extrabold">{editingMep.createdByName || editingMep.createdBy || 'Staf TMII'}</span>
+                        </span>
+                        {editingMep.createdBy && editingMep.createdByName && (
+                          <span className="text-[11px] text-slate-500 font-mono">({editingMep.createdBy})</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] text-slate-600 mt-0.5 font-medium">
+                        <Clock size={12} className="text-slate-400" />
+                        <span>Waktu Registrasi: {editingMep.createdAt ? new Date(editingMep.createdAt).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' }) : 'Tidak tercatat'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span className="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                    Log Sistem
+                  </span>
+                </div>
+              )}
+              <fieldset disabled={editingMep !== null && !isAdmin} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Kode MEP *</label>
@@ -713,9 +750,9 @@ export default function MepAssets({
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-sm transition-colors cursor-pointer"
                 >
-                  {isAdmin ? 'Batal' : 'Tutup'}
+                  {(!editingMep || isAdmin) ? 'Batal' : 'Tutup'}
                 </button>
-                {isAdmin && (
+                {(!editingMep || isAdmin) && (
                   <button 
                     type="submit"
                     className="px-5 py-2 text-white font-semibold rounded-xl text-sm shadow-md transition-colors cursor-pointer"

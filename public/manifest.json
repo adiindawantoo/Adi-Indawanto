@@ -1,0 +1,23 @@
+{
+  "short_name": "TMII Aset",
+  "name": "TMII Asset Management - Sistem Manajemen Aset Nusantara",
+  "icons": [
+    {
+      "src": "/icon-192.png?v=3",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512.png?v=3",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "display": "standalone",
+  "orientation": "portrait",
+  "description": "Sistem Manajemen Aset dan Pelacakan Tugas Terintegrasi untuk Taman Mini Indonesia Indah (TMII)."
+}

@@ -7,15 +7,13 @@ import {
   User, 
   signOut 
 } from 'firebase/auth';
-import { initializeFirestore } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // Inisialisasi Firebase
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-}, firebaseConfig.firestoreDatabaseId);
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId); /* CRITICAL: Required for custom database ID */
 
 const provider = new GoogleAuthProvider();
 // Request Google Drive and User profile scopes
@@ -142,5 +140,18 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     path
   };
   console.error('Firestore Error: ', JSON.stringify(errInfo));
+
+  const errStr = String(errInfo.error).toLowerCase();
+  const isNetworkOrOffline = 
+    errStr.includes('offline') || 
+    errStr.includes('unavailable') || 
+    errStr.includes('could not reach') || 
+    errStr.includes('network');
+
+  if (isNetworkOrOffline) {
+    console.warn('Firestore is currently operating in offline/reconnecting mode:', errInfo.error);
+    return;
+  }
+
   throw new Error(JSON.stringify(errInfo));
 }

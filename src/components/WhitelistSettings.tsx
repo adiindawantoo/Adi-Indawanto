@@ -24,17 +24,34 @@ import {
   RefreshCw,
   FolderTree,
   Tag,
-  Layers
+  Layers,
+  ExternalLink,
+  Navigation,
+  Sparkles,
+  Download,
+  FileSpreadsheet,
+  ChevronDown
 } from 'lucide-react';
-import { AllowedEmail, ConfiguredLocation, ConfiguredCategory, TmiiRegionName, DEFAULT_ASSET_LOCATIONS, DEFAULT_ASSET_CATEGORIES, LOCATION_AREA_CATEGORIES } from '../types';
+import { AllowedEmail, ConfiguredLocation, ConfiguredCategory, TmiiRegionName, DEFAULT_ASSET_LOCATIONS, DEFAULT_ASSET_CATEGORIES, LOCATION_AREA_CATEGORIES, FixedAsset, AppTheme } from '../types';
+import { 
+  getGoogleMapsUrl, 
+  getGoogleDirectionsUrl, 
+  isValidLatLng, 
+  formatCoordinates, 
+  parseLatLngInput, 
+  TMII_CENTER_COORDINATES 
+} from '../lib/geoUtils';
+import AssetCodificationSettings from './AssetCodificationSettings';
+import { resolveCategoryCode, resolveLocationAreaCode, resolveTypeCode } from '../lib/assetCodeGenerator';
+import { exportConfiguredLocations } from '../lib/locationExporter';
 
 interface WhitelistSettingsProps {
   emails: AllowedEmail[];
   onAddEmail: (email: string, role: 'admin' | 'viewer') => Promise<void>;
   onDeleteEmail: (id: string) => Promise<void>;
   locations?: ConfiguredLocation[];
-  onAddLocation?: (name: string, region: TmiiRegionName, category: string, description?: string) => Promise<void>;
-  onUpdateLocation?: (id: string, name: string, region: TmiiRegionName, category: string, description?: string) => Promise<void>;
+  onAddLocation?: (name: string, region: TmiiRegionName, category: string, description?: string, latitude?: number, longitude?: number) => Promise<void>;
+  onUpdateLocation?: (id: string, name: string, region: TmiiRegionName, category: string, description?: string, latitude?: number, longitude?: number) => Promise<void>;
   onDeleteLocation?: (id: string) => Promise<void>;
   onSeedLocations?: () => Promise<void>;
   categories?: ConfiguredCategory[];
@@ -52,6 +69,9 @@ interface WhitelistSettingsProps {
     meps: number;
     museumCollections: number;
   };
+  fixedAssets?: FixedAsset[];
+  theme?: AppTheme;
+  isAdmin?: boolean;
 }
 
 export default function WhitelistSettings({
@@ -70,10 +90,18 @@ export default function WhitelistSettings({
   onSeedCategories,
   currentUserEmail,
   onClearCollection,
-  stats = { tasks: 0, fixedAssets: 0, animals: 0, cctvs: 0, meps: 0, museumCollections: 0 }
+  stats = { tasks: 0, fixedAssets: 0, animals: 0, cctvs: 0, meps: 0, museumCollections: 0 },
+  fixedAssets = [],
+  theme,
+  isAdmin = false
 }: WhitelistSettingsProps) {
-  // Navigation active setting section
-  const [activeTab, setActiveTab] = useState<'categories' | 'locations' | 'whitelist' | 'database'>('categories');
+  // Navigation active setting section: defaults to 'codification' for non-admin, or 'categories' for admin
+  const [activeTab, setActiveTab] = useState<'codification' | 'categories' | 'locations' | 'whitelist' | 'database'>(
+    isAdmin ? 'categories' : 'codification'
+  );
+
+  // For non-admin, force effectiveTab strictly to 'codification'
+  const effectiveTab = isAdmin ? activeTab : 'codification';
 
   // Whitelist Form states
   const [newEmail, setNewEmail] = useState('');
@@ -85,6 +113,8 @@ export default function WhitelistSettings({
   const [locRegion, setLocRegion] = useState<TmiiRegionName>('Wilayah Utara');
   const [locCategory, setLocCategory] = useState<string>('Area Makro TMII');
   const [locDescription, setLocDescription] = useState('');
+  const [locCoordinates, setLocCoordinates] = useState('');
+  const [parsedLocCoord, setParsedLocCoord] = useState<{ latitude: number; longitude: number } | null>(null);
   const [submittingLoc, setSubmittingLoc] = useState(false);
   
   // Location Filters
@@ -98,6 +128,8 @@ export default function WhitelistSettings({
   const [editLocRegion, setEditLocRegion] = useState<TmiiRegionName>('Wilayah Utara');
   const [editLocCategory, setEditLocCategory] = useState<string>('Area Makro TMII');
   const [editLocDescription, setEditLocDescription] = useState('');
+  const [editLocCoordinates, setEditLocCoordinates] = useState('');
+  const [parsedEditLocCoord, setParsedEditLocCoord] = useState<{ latitude: number; longitude: number } | null>(null);
   const [savingEditLoc, setSavingEditLoc] = useState(false);
 
   // Category Form & Search states
@@ -189,9 +221,25 @@ export default function WhitelistSettings({
       region: loc.region,
       category: loc.category,
       description: loc.description,
+      latitude: loc.latitude,
+      longitude: loc.longitude,
       createdAt: ''
     }));
   }, [locations]);
+
+  // Coordinate input handler for Add Location form
+  const handleCoordInputChange = (val: string) => {
+    setLocCoordinates(val);
+    const parsed = parseLatLngInput(val);
+    setParsedLocCoord(parsed);
+  };
+
+  // Coordinate input handler for Edit Location modal
+  const handleEditCoordInputChange = (val: string) => {
+    setEditLocCoordinates(val);
+    const parsed = parseLatLngInput(val);
+    setParsedEditLocCoord(parsed);
+  };
 
   // Submit location
   const handleSubmitLocation = async (e: React.FormEvent) => {
@@ -216,9 +264,18 @@ export default function WhitelistSettings({
 
     setSubmittingLoc(true);
     try {
-      await onAddLocation(cleanName, locRegion, locCategory, locDescription.trim());
+      await onAddLocation(
+        cleanName, 
+        locRegion, 
+        locCategory, 
+        locDescription.trim(), 
+        parsedLocCoord?.latitude, 
+        parsedLocCoord?.longitude
+      );
       setLocName('');
       setLocDescription('');
+      setLocCoordinates('');
+      setParsedLocCoord(null);
       showToast(`Lokasi "${cleanName}" (${locCategory}) di ${locRegion} berhasil disimpan!`, 'success');
     } catch (err: any) {
       showToast(`Gagal menambahkan lokasi: ${err.message}`, 'error');
@@ -234,6 +291,14 @@ export default function WhitelistSettings({
     setEditLocRegion(loc.region);
     setEditLocCategory(loc.category || 'Area Makro TMII');
     setEditLocDescription(loc.description || '');
+    if (typeof loc.latitude === 'number' && typeof loc.longitude === 'number') {
+      const str = `${loc.latitude}, ${loc.longitude}`;
+      setEditLocCoordinates(str);
+      setParsedEditLocCoord({ latitude: loc.latitude, longitude: loc.longitude });
+    } else {
+      setEditLocCoordinates('');
+      setParsedEditLocCoord(null);
+    }
   };
 
   // Save edit location
@@ -249,9 +314,24 @@ export default function WhitelistSettings({
     setSavingEditLoc(true);
     try {
       if (onUpdateLocation) {
-        await onUpdateLocation(editingLocation.id, cleanName, editLocRegion, editLocCategory, editLocDescription.trim());
+        await onUpdateLocation(
+          editingLocation.id, 
+          cleanName, 
+          editLocRegion, 
+          editLocCategory, 
+          editLocDescription.trim(), 
+          parsedEditLocCoord?.latitude, 
+          parsedEditLocCoord?.longitude
+        );
       } else if (onAddLocation) {
-        await onAddLocation(cleanName, editLocRegion, editLocCategory, editLocDescription.trim());
+        await onAddLocation(
+          cleanName, 
+          editLocRegion, 
+          editLocCategory, 
+          editLocDescription.trim(), 
+          parsedEditLocCoord?.latitude, 
+          parsedEditLocCoord?.longitude
+        );
       }
       showToast(`Lokasi "${cleanName}" berhasil diperbarui.`, 'success');
       setEditingLocation(null);
@@ -457,6 +537,39 @@ export default function WhitelistSettings({
     });
   }, [displayLocations, locFilterRegion, locFilterCategory, locSearchTerm]);
 
+  // Download states & handlers for Configured Locations
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [downloadingFormat, setDownloadingFormat] = useState<'xlsx' | 'csv' | null>(null);
+
+  const handleDownloadLocations = (scope: 'all' | 'filtered', format: 'xlsx' | 'csv' = 'xlsx') => {
+    try {
+      setDownloadingFormat(format);
+      const targetLocations = scope === 'filtered' ? filteredLocations : displayLocations;
+      if (targetLocations.length === 0) {
+        showToast('Tidak ada data lokasi yang tersedia untuk diunduh.', 'error');
+        return;
+      }
+      const dateStr = new Date().toISOString().split('T')[0];
+      const isFiltered = scope === 'filtered' && (locFilterRegion !== 'Semua' || locFilterCategory !== 'Semua' || locSearchTerm.trim() !== '');
+      const suffix = isFiltered ? '_Terfilter' : '_Lengkap';
+      const fileName = `Daftar_Lokasi_Terkonfigurasi_TMII${suffix}_${dateStr}`;
+      
+      exportConfiguredLocations(targetLocations, {
+        format,
+        fileName,
+        assets: fixedAssets,
+        sheetTitle: 'Lokasi Terkonfigurasi'
+      });
+
+      showToast(`Daftar lokasi (${targetLocations.length} data) berhasil diunduh dalam format ${format.toUpperCase()}.`, 'success');
+      setShowDownloadMenu(false);
+    } catch (err: any) {
+      showToast(`Gagal mengunduh lokasi: ${err.message}`, 'error');
+    } finally {
+      setDownloadingFormat(null);
+    }
+  };
+
   // Helper badge class per region
   const getRegionBadgeStyle = (region: TmiiRegionName) => {
     switch (region) {
@@ -481,77 +594,119 @@ export default function WhitelistSettings({
       {/* Page Title */}
       <div className="pt-4 pb-2 px-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Pengaturan Sistem & Database Terpadu
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+              {isAdmin ? 'Pengaturan Sistem & Database Terpadu' : 'Aturan & Standarisasi Kode Aset'}
+            </h1>
+            {!isAdmin && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                <ShieldCheck size={13} className="text-blue-600" />
+                <span>Akses Staf</span>
+              </span>
+            )}
+          </div>
           <p className="text-slate-500 text-xs mt-1 font-medium">
-            Kelola otorisasi email staf, konfigurasi lokasi aset 5 wilayah TMII, dan pemeliharaan basis data.
+            {isAdmin 
+              ? 'Kelola otorisasi email staf, konfigurasi lokasi aset 5 wilayah TMII, dan pemeliharaan basis data.'
+              : 'Pedoman resmi kodefikasi aset tetap TMII (K1K2.K3K4.K5-K6), simulasi pembuatan kode baru, uji urai kode, dan direktori kode.'}
           </p>
         </div>
 
-        {/* Tab Navigation Pill Header */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300/60 shadow-inner">
-          <button
-            onClick={() => setActiveTab('categories')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-              activeTab === 'categories'
-                ? 'bg-amber-500 text-slate-950 shadow-md ring-1 ring-amber-400'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
-            }`}
-          >
-            <FolderTree size={15} />
-            <span>Kategori & Jenis Aset</span>
-            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-slate-900 text-white font-bold">
-              {displayCategories.length}
-            </span>
-          </button>
+        {/* Tab Navigation Pill Header - Only for Admin */}
+        {isAdmin ? (
+          <div className="flex flex-wrap items-center gap-1.5 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300/60 shadow-inner">
+            <button
+              onClick={() => setActiveTab('codification')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                activeTab === 'codification'
+                  ? 'bg-blue-600 text-white shadow-md ring-1 ring-blue-400'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+              }`}
+            >
+              <Sparkles size={15} />
+              <span>Aturan Kode Aset</span>
+              <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-white/20 text-white font-mono font-bold">
+                Auto
+              </span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('locations')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-              activeTab === 'locations'
-                ? 'bg-amber-500 text-slate-950 shadow-md ring-1 ring-amber-400'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
-            }`}
-          >
-            <MapPin size={15} />
-            <span>Setting Lokasi Aset</span>
-            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-slate-900 text-white font-bold">
-              {locations.length}
-            </span>
-          </button>
+            <button
+              onClick={() => setActiveTab('categories')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                activeTab === 'categories'
+                  ? 'bg-amber-500 text-slate-950 shadow-md ring-1 ring-amber-400'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+              }`}
+            >
+              <FolderTree size={15} />
+              <span>Kategori & Jenis Aset</span>
+              <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-slate-900 text-white font-bold">
+                {displayCategories.length}
+              </span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('whitelist')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-              activeTab === 'whitelist'
-                ? 'bg-slate-900 text-white shadow-md'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
-            }`}
-          >
-            <UserCheck size={15} />
-            <span>Otorisasi Email</span>
-            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-600 text-white font-bold">
-              {emails.length + 1}
-            </span>
-          </button>
+            <button
+              onClick={() => setActiveTab('locations')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                activeTab === 'locations'
+                  ? 'bg-amber-500 text-slate-950 shadow-md ring-1 ring-amber-400'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+              }`}
+            >
+              <MapPin size={15} />
+              <span>Setting Lokasi Aset</span>
+              <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-slate-900 text-white font-bold">
+                {locations.length}
+              </span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('database')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-              activeTab === 'database'
-                ? 'bg-slate-900 text-white shadow-md'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
-            }`}
-          >
-            <Database size={15} />
-            <span>Reset Data</span>
-          </button>
-        </div>
+            <button
+              onClick={() => setActiveTab('whitelist')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                activeTab === 'whitelist'
+                  ? 'bg-slate-900 text-white shadow-md'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+              }`}
+            >
+              <UserCheck size={15} />
+              <span>Otorisasi Email</span>
+              <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-600 text-white font-bold">
+                {emails.length + 1}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('database')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+                activeTab === 'database'
+                  ? 'bg-slate-900 text-white shadow-md'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
+              }`}
+            >
+              <Database size={15} />
+              <span>Reset Data</span>
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 bg-blue-50 border border-blue-200/80 px-4 py-2.5 rounded-2xl text-xs font-semibold text-blue-900 shadow-xs">
+            <Sparkles size={15} className="text-blue-600" />
+            <span>Mode Staf: Pedoman & Kodefikasi Resmi TMII</span>
+          </div>
+        )}
       </div>
 
+      {/* -1. ATURAN KODEFIKASI ASET TAB */}
+      {effectiveTab === 'codification' && (
+        <AssetCodificationSettings
+          fixedAssets={fixedAssets}
+          configuredLocations={locations}
+          configuredCategories={displayCategories}
+          theme={theme}
+        />
+      )}
+
       {/* 0. SETTING KATEGORI & JENIS ASET TAB */}
-      {activeTab === 'categories' && (
+      {isAdmin && effectiveTab === 'categories' && (
         <div className="space-y-6">
           {/* Header Action Banner */}
           <div className="p-5 rounded-3xl bg-amber-50 border border-amber-200/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
@@ -642,9 +797,14 @@ export default function WhitelistSettings({
                         <FolderTree size={16} />
                       </div>
                       <div>
-                        <h3 className="font-extrabold text-slate-900 text-sm leading-snug">
-                          {cat.category}
-                        </h3>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="font-extrabold text-slate-900 text-sm leading-snug">
+                            {cat.category}
+                          </h3>
+                          <span className="font-mono text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+                            Kode 3: {resolveCategoryCode(cat.category).code}
+                          </span>
+                        </div>
                         <p className="text-[10px] font-bold text-amber-700 mt-0.5">
                           {cat.types.length} Jenis Aset Turunan
                         </p>
@@ -683,17 +843,23 @@ export default function WhitelistSettings({
                   <div className="mt-4 pt-3 border-t border-slate-100 space-y-2">
                     <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                       <Tag size={12} />
-                      <span>Daftar Sub-Jenis:</span>
+                      <span>Daftar Sub-Jenis (Kode 4):</span>
                     </div>
                     <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
-                      {cat.types.map((type, tIdx) => (
-                        <span 
-                          key={tIdx}
-                          className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-[11px] font-medium border border-slate-200/60"
-                        >
-                          {type}
-                        </span>
-                      ))}
+                      {cat.types.map((type, tIdx) => {
+                        const typeCode = resolveTypeCode(cat.category, type);
+                        return (
+                          <span 
+                            key={tIdx}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-800 rounded-lg text-[11px] font-medium border border-slate-200/60"
+                          >
+                            <span className="font-mono font-black text-[9px] text-purple-700 bg-purple-100/80 px-1 py-0.2 rounded">
+                              {typeCode.code}
+                            </span>
+                            <span>{type}</span>
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -717,7 +883,7 @@ export default function WhitelistSettings({
       )}
 
       {/* 1. SETTING LOKASI ASET TAB */}
-      {activeTab === 'locations' && (
+      {isAdmin && effectiveTab === 'locations' && (
         <div className="space-y-6">
           
           {/* Header Action Banner */}
@@ -737,9 +903,10 @@ export default function WhitelistSettings({
             <button
               onClick={handleSeedLocationsPrompt}
               className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white hover:bg-amber-100 text-slate-900 border border-amber-300 font-extrabold text-xs transition-all shadow-xs cursor-pointer shrink-0"
+              title="Sinkronkan dan perbarui seluruh koordinat lokasi ke standar presisi citra satelit"
             >
               <RotateCcw size={15} className="text-amber-700" />
-              <span>Restorasi 5 Wilayah Default</span>
+              <span>Sinkronkan & Restorasi Koordinat Satelit</span>
             </button>
           </div>
 
@@ -786,9 +953,12 @@ export default function WhitelistSettings({
                     onChange={e => setLocCategory(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-extrabold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
                   >
-                    {LOCATION_AREA_CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
+                    {LOCATION_AREA_CATEGORIES.map(cat => {
+                      const code = resolveLocationAreaCode(cat);
+                      return (
+                        <option key={cat} value={cat}>[{code.code}] {cat}</option>
+                      );
+                    })}
                   </select>
                 </div>
 
@@ -821,6 +991,61 @@ export default function WhitelistSettings({
                   />
                 </div>
 
+                {/* Google Maps Coordinates Input */}
+                <div className="space-y-2 p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[11px] font-extrabold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <Compass size={14} className="text-blue-600" />
+                      <span>Titik Koordinat Google Maps</span>
+                    </label>
+                    <a
+                      href={`https://www.google.com/maps/@${TMII_CENTER_COORDINATES.latitude},${TMII_CENTER_COORDINATES.longitude},16z`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
+                      title="Buka Peta TMII di Google Maps untuk mengecek titik"
+                    >
+                      <span>Buka Maps TMII</span>
+                      <ExternalLink size={10} />
+                    </a>
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="Contoh: -6.302455, 106.895120 atau paste link Google Maps"
+                    value={locCoordinates}
+                    onChange={e => handleCoordInputChange(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-blue-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder:font-sans placeholder:font-normal placeholder:text-slate-400"
+                  />
+
+                  {/* Validation and Preview Feedback */}
+                  {parsedLocCoord ? (
+                    <div className="flex items-center justify-between text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-emerald-200">
+                      <span className="flex items-center gap-1.5">
+                        <Check size={13} className="text-emerald-600 shrink-0" />
+                        <span>Valid: {formatCoordinates(parsedLocCoord.latitude, parsedLocCoord.longitude)}</span>
+                      </span>
+                      <a
+                        href={getGoogleMapsUrl(locName || 'Titik TMII', parsedLocCoord.latitude, parsedLocCoord.longitude)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline flex items-center gap-1 text-[10px] shrink-0"
+                      >
+                        <span>Cek Pin</span>
+                        <ExternalLink size={10} />
+                      </a>
+                    </div>
+                  ) : locCoordinates.trim() ? (
+                    <div className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                      Format belum valid. Gunakan: -6.302455, 106.895120 atau paste link Google Maps.
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
+                      Bisa diisi koordinat desimal (Lat, Lng) atau tautan Google Maps untuk navigasi dan penempatan akurat.
+                    </p>
+                  )}
+                </div>
+
                 <button
                   type="submit"
                   disabled={submittingLoc}
@@ -847,22 +1072,117 @@ export default function WhitelistSettings({
               
               {/* Header & Region / Category Filters */}
               <div className="space-y-3 border-b border-slate-100 pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h3 className="font-extrabold text-slate-900 text-sm">Daftar Lokasi Terkonfigurasi</h3>
                     <p className="text-xs text-slate-400 font-medium">Total <strong className="text-slate-900">{filteredLocations.length}</strong> lokasi terdaftar</p>
                   </div>
 
-                  {/* Search box */}
-                  <div className="relative w-full sm:w-52">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Cari lokasi..."
-                      value={locSearchTerm}
-                      onChange={e => setLocSearchTerm(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                    />
+                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                    {/* Search box */}
+                    <div className="relative w-full sm:w-44">
+                      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Cari lokasi..."
+                        value={locSearchTerm}
+                        onChange={e => setLocSearchTerm(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                      />
+                    </div>
+
+                    {/* Download Button with Dropdown */}
+                    <div className="relative">
+                      <div className="inline-flex rounded-xl shadow-xs overflow-hidden border border-emerald-600 bg-emerald-600">
+                        <button
+                          onClick={() => handleDownloadLocations('filtered', 'xlsx')}
+                          disabled={downloadingFormat !== null || filteredLocations.length === 0}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-black text-white hover:bg-emerald-700 transition-colors cursor-pointer disabled:opacity-50"
+                          title="Unduh seluruh kolom terisi format Excel (.xlsx)"
+                        >
+                          <FileSpreadsheet size={14} className="text-emerald-100" />
+                          <span>{downloadingFormat === 'xlsx' ? 'Mengunduh...' : 'Download Excel'}</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => setShowDownloadMenu(prev => !prev)}
+                          className="px-2 py-1.5 border-l border-emerald-500 hover:bg-emerald-700 text-white transition-colors cursor-pointer"
+                          title="Pilihan Opsi Download (Excel / CSV)"
+                        >
+                          <ChevronDown size={14} />
+                        </button>
+                      </div>
+
+                      {/* Dropdown Menu */}
+                      <AnimatePresence>
+                        {showDownloadMenu && (
+                          <>
+                            <div 
+                              className="fixed inset-0 z-20" 
+                              onClick={() => setShowDownloadMenu(false)} 
+                            />
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                              className="absolute right-0 top-full mt-1.5 w-68 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 z-30 space-y-1 text-xs"
+                            >
+                              <div className="px-2.5 py-1 text-[10px] font-black uppercase text-slate-400 tracking-wider">
+                                Opsi Unduh Daftar Lokasi
+                              </div>
+
+                              <button
+                                onClick={() => handleDownloadLocations('filtered', 'xlsx')}
+                                className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-emerald-50 text-slate-800 hover:text-emerald-950 transition-colors cursor-pointer text-left font-bold"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <FileSpreadsheet size={16} className="text-emerald-600 shrink-0" />
+                                  <div>
+                                    <div className="font-extrabold">Excel (.xlsx) - Data Terfilter</div>
+                                    <div className="text-[10px] text-slate-400 font-normal">{filteredLocations.length} lokasi sesuai filter saat ini</div>
+                                  </div>
+                                </div>
+                                <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">XLSX</span>
+                              </button>
+
+                              <button
+                                onClick={() => handleDownloadLocations('all', 'xlsx')}
+                                className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-emerald-50 text-slate-800 hover:text-emerald-950 transition-colors cursor-pointer text-left font-bold"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <FileSpreadsheet size={16} className="text-emerald-600 shrink-0" />
+                                  <div>
+                                    <div className="font-extrabold">Excel (.xlsx) - Semua Lokasi</div>
+                                    <div className="text-[10px] text-slate-400 font-normal">{displayLocations.length} seluruh lokasi terdaftar</div>
+                                  </div>
+                                </div>
+                                <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">XLSX</span>
+                              </button>
+
+                              <div className="my-1 border-t border-slate-100" />
+
+                              <button
+                                onClick={() => handleDownloadLocations('filtered', 'csv')}
+                                className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 text-slate-800 transition-colors cursor-pointer text-left font-bold"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Download size={16} className="text-slate-600 shrink-0" />
+                                  <div>
+                                    <div className="font-extrabold">CSV Standar (.csv)</div>
+                                    <div className="text-[10px] text-slate-400 font-normal">UTF-8 BOM siap impor & kompatibel Excel</div>
+                                  </div>
+                                </div>
+                                <span className="text-[10px] font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-bold">CSV</span>
+                              </button>
+
+                              <div className="p-2 bg-slate-50 rounded-xl text-[10px] text-slate-500 font-medium leading-tight">
+                                ✨ Lengkap 18 kolom: ID, Nama, Wilayah, Kategori, Kode Area, Deskripsi, Koordinat (Lat/Lng), Link Maps & Navigasi, Status GPS, dan Total Aset.
+                              </div>
+                            </motion.div>
+                          </>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
                 </div>
 
@@ -922,8 +1242,9 @@ export default function WhitelistSettings({
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <h4 className="font-extrabold text-slate-900 text-xs">{loc.name}</h4>
                             {loc.category && (
-                              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                {loc.category}
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1">
+                                <span className="font-mono text-amber-700 font-extrabold">[{resolveLocationAreaCode(loc.category).code}]</span>
+                                <span>{loc.category}</span>
                               </span>
                             )}
                             <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border ${getRegionBadgeStyle(loc.region)}`}>
@@ -935,6 +1256,48 @@ export default function WhitelistSettings({
                               {loc.description}
                             </p>
                           )}
+
+                          {/* Coordinates & Google Maps Link */}
+                          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                            {isValidLatLng(loc.latitude, loc.longitude) ? (
+                              <a
+                                href={getGoogleMapsUrl(loc.name, loc.latitude, loc.longitude)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200/80 transition-colors group/gmap"
+                                title="Buka Titik Koordinat di Google Maps (Tab Baru)"
+                              >
+                                <Compass size={11} className="text-blue-600 shrink-0" />
+                                <span className="font-mono">{formatCoordinates(loc.latitude, loc.longitude, 'decimal')}</span>
+                                <ExternalLink size={10} className="text-blue-400 group-hover/gmap:text-blue-700 shrink-0" />
+                              </a>
+                            ) : (
+                              <a
+                                href={getGoogleMapsUrl(loc.name)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-semibold bg-slate-100 text-slate-500 hover:text-slate-800 hover:bg-slate-200 transition-colors"
+                                title="Cari lokasi ini di Google Maps"
+                              >
+                                <MapPin size={10} />
+                                <span>Cari di Maps</span>
+                                <ExternalLink size={9} />
+                              </a>
+                            )}
+
+                            {isValidLatLng(loc.latitude, loc.longitude) && (
+                              <a
+                                href={getGoogleDirectionsUrl(loc.name, loc.latitude, loc.longitude)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors"
+                                title="Buka Petunjuk Rute ke Lokasi Ini"
+                              >
+                                <Navigation size={9} className="text-emerald-600" />
+                                <span>Petunjuk Rute</span>
+                              </a>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -965,7 +1328,7 @@ export default function WhitelistSettings({
       )}
 
       {/* 2. WHITELIST EMAIL TAB */}
-      {activeTab === 'whitelist' && (
+      {isAdmin && effectiveTab === 'whitelist' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6" id="whitelist-layout">
           
           {/* Left Form Panel */}
@@ -1104,7 +1467,7 @@ export default function WhitelistSettings({
       )}
 
       {/* 3. DATABASE RESET TAB */}
-      {activeTab === 'database' && (
+      {isAdmin && effectiveTab === 'database' && (
         <div className="bg-white p-6 rounded-[28px] border border-slate-200/80 shadow-xs space-y-6">
           <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
             <div className="w-10 h-10 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center font-black">
@@ -1302,9 +1665,12 @@ export default function WhitelistSettings({
                       onChange={e => setEditLocCategory(e.target.value)}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
                     >
-                      {LOCATION_AREA_CATEGORIES.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
+                      {LOCATION_AREA_CATEGORIES.map(cat => {
+                        const code = resolveLocationAreaCode(cat);
+                        return (
+                          <option key={cat} value={cat}>[{code.code}] {cat}</option>
+                        );
+                      })}
                     </select>
                   </div>
                 </div>
@@ -1319,6 +1685,61 @@ export default function WhitelistSettings({
                     onChange={e => setEditLocDescription(e.target.value)}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none"
                   />
+                </div>
+
+                {/* Edit Coordinates Input */}
+                <div className="space-y-2 p-3 bg-blue-50/70 border border-blue-200/80 rounded-2xl">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[11px] font-extrabold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <Compass size={13} className="text-blue-600" />
+                      <span>Titik Koordinat Google Maps</span>
+                    </label>
+                    <a
+                      href={`https://www.google.com/maps/@${TMII_CENTER_COORDINATES.latitude},${TMII_CENTER_COORDINATES.longitude},16z`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-bold text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
+                      title="Buka Peta TMII di Google Maps"
+                    >
+                      <span>Buka Maps</span>
+                      <ExternalLink size={10} />
+                    </a>
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="Contoh: -6.302455, 106.895120 atau paste link Google Maps"
+                    value={editLocCoordinates}
+                    onChange={e => handleEditCoordInputChange(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-blue-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder:font-sans placeholder:font-normal placeholder:text-slate-400"
+                  />
+
+                  {/* Validation feedback */}
+                  {parsedEditLocCoord ? (
+                    <div className="flex items-center justify-between text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-emerald-200">
+                      <span className="flex items-center gap-1.5">
+                        <Check size={13} className="text-emerald-600 shrink-0" />
+                        <span>Valid: {formatCoordinates(parsedEditLocCoord.latitude, parsedEditLocCoord.longitude)}</span>
+                      </span>
+                      <a
+                        href={getGoogleMapsUrl(editLocName || 'Titik TMII', parsedEditLocCoord.latitude, parsedEditLocCoord.longitude)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline flex items-center gap-1 text-[10px] shrink-0"
+                      >
+                        <span>Cek Pin</span>
+                        <ExternalLink size={10} />
+                      </a>
+                    </div>
+                  ) : editLocCoordinates.trim() ? (
+                    <div className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                      Format belum valid. Format: -6.302455, 106.895120 atau link Google Maps.
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-slate-500 font-medium">
+                      Biarkan kosong jika belum mengetahui koordinat spesifik.
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
@@ -1589,7 +2010,7 @@ export default function WhitelistSettings({
                     {confirmModal.type === 'clear_db' && 'Kosongkan Basis Data?'}
                     {confirmModal.type === 'delete_email' && 'Cabut Otorisasi Akses?'}
                     {confirmModal.type === 'delete_location' && 'Hapus Lokasi Aset?'}
-                    {confirmModal.type === 'seed_locations' && 'Restorasi Lokasi Default TMII?'}
+                    {confirmModal.type === 'seed_locations' && 'Sinkronkan & Restorasi Koordinat Satelit?'}
                     {confirmModal.type === 'delete_category' && 'Hapus Kategori Aset?'}
                     {confirmModal.type === 'seed_categories' && 'Restorasi Kategori Default Spreadsheet?'}
                   </h3>
@@ -1604,7 +2025,7 @@ export default function WhitelistSettings({
                       <>Apakah Anda yakin ingin menghapus lokasi <span className="font-bold text-slate-900">{confirmModal.displayName}</span> dari pilihan sistem?</>
                     )}
                     {confirmModal.type === 'seed_locations' && (
-                      <>Ini akan merestorasi seluruh daftar lokasi bawaan 5 wilayah TMII (Utara, Selatan, Barat, Timur, Pusat) ke dalam database.</>
+                      <>Tindakan ini akan mendaftarkan seluruh lokasi default dan mengalibrasi koordinat presisi tinggi berbasis citra satelit untuk 5 wilayah TMII (Barat, Pusat, Selatan, Timur, Utara) ke dalam database.</>
                     )}
                     {confirmModal.type === 'delete_category' && (
                       <>Apakah Anda yakin ingin menghapus kategori <span className="font-bold text-slate-900">{confirmModal.displayName}</span> dari database?</>

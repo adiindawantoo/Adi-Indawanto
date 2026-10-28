@@ -11,8 +11,11 @@ import {
   ShieldCheck,
   Stethoscope,
   Info,
-  Calendar,
-  ArrowUpDown
+  MapPin,
+  Tag,
+  ArrowUpDown,
+  UserCheck,
+  Clock
 } from 'lucide-react';
 import { AnimalAsset, AppTheme, ConfiguredLocation, DEFAULT_ASSET_LOCATIONS, TmiiRegionName } from '../types';
 import { exportToExcel } from '../lib/excel';
@@ -51,13 +54,15 @@ export default function AnimalAssets({
     }));
   }, [configuredLocations]);
 
-  const regionsList: TmiiRegionName[] = ['Wilayah Utara', 'Wilayah Selatan', 'Wilayah Barat', 'Wilayah Timur', 'Wilayah Pusat'];
   const [searchTerm, setSearchTerm] = useState('');
+  const [locationFilter, setLocationFilter] = useState('Semua');
+  const [typeFilter, setTypeFilter] = useState('Semua');
   const [healthFilter, setHealthFilter] = useState('Semua');
+  const [genderFilter, setGenderFilter] = useState('Semua');
   const [isImportOpen, setIsImportOpen] = useState(false);
 
   // Sorting & Pagination States
-  const [sortColumn, setSortColumn] = useState<string>('code');
+  const [sortColumn, setSortColumn] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -66,72 +71,73 @@ export default function AnimalAssets({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAnimal, setEditingAnimal] = useState<AnimalAsset | null>(null);
 
-  const [formCode, setFormCode] = useState('');
-  const [formName, setFormName] = useState('');
-  const [formSpecies, setFormSpecies] = useState('');
-  const [formLocation, setFormLocation] = useState('');
-  const [formHealthStatus, setFormHealthStatus] = useState<AnimalAsset['healthStatus']>('Sehat');
-  const [formLastCheckup, setFormLastCheckup] = useState('');
-  const [formNextCheckup, setFormNextCheckup] = useState('');
-  const [formDiet, setFormDiet] = useState('');
-  const [formMedicalHistory, setFormMedicalHistory] = useState('');
+  // Requested fields
+  const [formName, setFormName] = useState(''); // Nama Satwa (Mandatory)
+  const [formLatinName, setFormLatinName] = useState(''); // Nama Latin (Mandatory)
+  const [formType, setFormType] = useState<AnimalAsset['type']>('Aves'); // Jenis (Aves, Reptil, Pisces, Amfibi, Mamalia) (Mandatory)
+  const [formLocation, setFormLocation] = useState(''); // Lokasi (Mandatory)
+  const [formLocationDetail, setFormLocationDetail] = useState(''); // Detail Lokasi
+  const [formGender, setFormGender] = useState<NonNullable<AnimalAsset['gender']>>('Belum Teridentifikasi'); // Jenis Kelamin
+  const [formHealthStatus, setFormHealthStatus] = useState<string>('Sehat'); // Kondisi Kesehatan
+  const [formNicknameOrCode, setFormNicknameOrCode] = useState(''); // Nama Panggilan / Kode Khusus
+  const [formNotes, setFormNotes] = useState(''); // Keterangan
 
   // Reset page when filter or search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, healthFilter, sortColumn, sortDirection]);
+  }, [searchTerm, locationFilter, typeFilter, healthFilter, genderFilter, sortColumn, sortDirection]);
 
   const resetForm = () => {
     setEditingAnimal(null);
-    setFormCode('');
     setFormName('');
-    setFormSpecies('');
+    setFormLatinName('');
+    setFormType('Aves');
     setFormLocation('');
+    setFormLocationDetail('');
+    setFormGender('Belum Teridentifikasi');
     setFormHealthStatus('Sehat');
-    setFormLastCheckup('');
-    setFormNextCheckup('');
-    setFormDiet('');
-    setFormMedicalHistory('');
+    setFormNicknameOrCode('');
+    setFormNotes('');
   };
 
   const handleOpenAddModal = () => {
     resetForm();
-    const nextNum = String(animals.length + 1).padStart(3, '0');
-    setFormCode(`TMII-STW-${nextNum}`);
     setIsModalOpen(true);
   };
 
   const handleOpenEditModal = (animal: AnimalAsset) => {
     setEditingAnimal(animal);
-    setFormCode(animal.code);
-    setFormName(animal.name);
-    setFormSpecies(animal.species);
-    setFormLocation(animal.location);
-    setFormHealthStatus(animal.healthStatus);
-    setFormLastCheckup(animal.lastCheckup || '');
-    setFormNextCheckup(animal.nextCheckup || '');
-    setFormDiet(animal.diet || '');
-    setFormMedicalHistory(animal.medicalHistory || '');
+    setFormName(animal.name || '');
+    setFormLatinName(animal.latinName || animal.species || '');
+    setFormType(animal.type || 'Aves');
+    setFormLocation(animal.location || '');
+    setFormLocationDetail(animal.locationDetail || '');
+    setFormGender(animal.gender || 'Belum Teridentifikasi');
+    setFormHealthStatus(animal.healthStatus || 'Sehat');
+    setFormNicknameOrCode(animal.nicknameOrCode || animal.code || '');
+    setFormNotes(animal.notes || '');
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formCode.trim() || !formName.trim() || !formSpecies.trim()) {
-      alert('Kode Satwa, Nama Satwa, dan Spesies wajib diisi.');
+    if (!formName.trim() || !formLatinName.trim() || !formType || !formLocation.trim()) {
+      alert('Mohon lengkapi field wajib (*): Nama Satwa, Nama Latin, Jenis Satwa, dan Lokasi.');
       return;
     }
 
     const animalPayload = {
-      code: formCode,
-      name: formName,
-      species: formSpecies,
-      location: formLocation,
-      healthStatus: formHealthStatus,
-      lastCheckup: formLastCheckup,
-      nextCheckup: formNextCheckup,
-      diet: formDiet,
-      medicalHistory: formMedicalHistory
+      name: formName.trim(),
+      latinName: formLatinName.trim(),
+      type: formType,
+      location: formLocation.trim(),
+      locationDetail: formLocationDetail.trim(),
+      gender: formGender,
+      healthStatus: formHealthStatus.trim() || 'Sehat',
+      nicknameOrCode: formNicknameOrCode.trim(),
+      notes: formNotes.trim(),
+      code: formNicknameOrCode.trim() || editingAnimal?.code || `STW-${String(animals.length + 1).padStart(3, '0')}`,
+      species: formLatinName.trim()
     };
 
     try {
@@ -148,7 +154,7 @@ export default function AnimalAssets({
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus satwa ini dari database?')) {
+    if (window.confirm('Apakah Anda yakin ingin menghapus data satwa ini dari database?')) {
       try {
         await onDeleteAnimal(id);
       } catch (err: any) {
@@ -159,38 +165,77 @@ export default function AnimalAssets({
 
   const handleExport = () => {
     const exportData = animals.map(a => ({
-      'ID Satwa': a.id,
-      'Kode Satwa': a.code,
-      'Nama Satwa': a.name,
-      'Spesies': a.species,
-      'Lokasi Kandang': a.location,
-      'Status Kesehatan': a.healthStatus,
-      'Nutrisi & Pola Makan': a.diet || '',
-      'Pemeriksaan Terakhir': a.lastCheckup || '',
-      'Pemeriksaan Berikutnya': a.nextCheckup || '',
-      'Histori Perawatan Medis': a.medicalHistory || '',
-      'Tanggal Registrasi': a.createdAt
+      'Nama Satwa': a.name || '',
+      'Nama Latin': a.latinName || a.species || '',
+      'Jenis': a.type || 'Aves',
+      'Lokasi': a.location || '',
+      'Detail Lokasi': a.locationDetail || '',
+      'Jenis Kelamin': a.gender || 'Belum Teridentifikasi',
+      'Kondisi Kesehatan': a.healthStatus || 'Sehat',
+      'Nama Panggilan / Kode Khusus': a.nicknameOrCode || a.code || '',
+      'Keterangan': a.notes || '',
+      'Tanggal Input': a.createdAt || ''
     }));
     exportToExcel(exportData, 'Database_Satwa_TMII', 'Satwa');
   };
 
+  // Calculate location statistics
+  const locationStats = React.useMemo(() => {
+    const map: Record<string, { total: number; healthy: number; sick: number; types: Record<string, number> }> = {};
+    
+    animals.forEach(animal => {
+      const loc = animal.location?.trim() || 'Tanpa Lokasi';
+      if (!map[loc]) {
+        map[loc] = { total: 0, healthy: 0, sick: 0, types: {} };
+      }
+      map[loc].total += 1;
+      if (animal.healthStatus === 'Sakit' || animal.healthStatus === 'Dalam Perawatan' || animal.healthStatus === 'Karantina') {
+        map[loc].sick += 1;
+      } else {
+        map[loc].healthy += 1;
+      }
+      const t = animal.type || 'Lainnya';
+      map[loc].types[t] = (map[loc].types[t] || 0) + 1;
+    });
+
+    return Object.entries(map).sort((a, b) => b[1].total - a[1].total);
+  }, [animals]);
+
+  const uniqueLocationsList = React.useMemo(() => {
+    const set = new Set<string>();
+    animals.forEach(a => {
+      if (a.location?.trim()) set.add(a.location.trim());
+    });
+    activeLocationsList.forEach(loc => {
+      if (loc.name) set.add(loc.name);
+    });
+    return Array.from(set).sort();
+  }, [animals, activeLocationsList]);
+
   // Filter Satwa
   const filteredAnimals = animals.filter(animal => {
+    const searchLower = searchTerm.toLowerCase();
     const matchesSearch = 
-      animal.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      animal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      animal.species.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      animal.location.toLowerCase().includes(searchTerm.toLowerCase());
+      (animal.name || '').toLowerCase().includes(searchLower) ||
+      (animal.latinName || animal.species || '').toLowerCase().includes(searchLower) ||
+      (animal.type || '').toLowerCase().includes(searchLower) ||
+      (animal.location || '').toLowerCase().includes(searchLower) ||
+      (animal.locationDetail || '').toLowerCase().includes(searchLower) ||
+      (animal.nicknameOrCode || animal.code || '').toLowerCase().includes(searchLower) ||
+      (animal.notes || '').toLowerCase().includes(searchLower);
 
+    const matchesLocation = locationFilter === 'Semua' || animal.location === locationFilter;
+    const matchesType = typeFilter === 'Semua' || animal.type === typeFilter;
+    const matchesGender = genderFilter === 'Semua' || animal.gender === genderFilter;
     const matchesHealth = healthFilter === 'Semua' || animal.healthStatus === healthFilter;
 
-    return matchesSearch && matchesHealth;
+    return matchesSearch && matchesLocation && matchesType && matchesGender && matchesHealth;
   });
 
   // Sort Satwa
   const sortedAnimals = [...filteredAnimals].sort((a, b) => {
-    let valA = a[sortColumn as keyof AnimalAsset] || '';
-    let valB = b[sortColumn as keyof AnimalAsset] || '';
+    let valA = (a[sortColumn as keyof AnimalAsset] || '') as string;
+    let valB = (b[sortColumn as keyof AnimalAsset] || '') as string;
 
     if (typeof valA === 'string') valA = valA.toLowerCase();
     if (typeof valB === 'string') valB = valB.toLowerCase();
@@ -214,7 +259,7 @@ export default function AnimalAssets({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" id="animals-header">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Database Satwa Wahana</h1>
-          <p className="text-sm text-gray-500">Rekam medis, jadwal kontrol kesehatan rutin, dan pengelolaan nutrisi satwa TMII</p>
+          <p className="text-sm text-gray-500">Pendataan dan inventarisasi koleksi satwa TMII (Nama Satwa, Latin, Jenis, Lokasi, Kesehatan)</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {isAdmin && (
@@ -240,17 +285,15 @@ export default function AnimalAssets({
             <FileSpreadsheet size={18} className="text-emerald-600" />
             <span>Ekspor Excel</span>
           </button>
-          {isAdmin && (
-            <button 
-              onClick={handleOpenAddModal}
-              className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
-              style={{ backgroundColor: theme.primaryColor }}
-              id="btn-add-animal"
-            >
-              <Plus size={18} />
-              <span>Registrasi Satwa</span>
-            </button>
-          )}
+          <button 
+            onClick={handleOpenAddModal}
+            className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
+            style={{ backgroundColor: theme.primaryColor }}
+            id="btn-add-animal"
+          >
+            <Plus size={18} />
+            <span>Registrasi Satwa</span>
+          </button>
         </div>
       </div>
 
@@ -277,11 +320,11 @@ export default function AnimalAssets({
         )}
       </AnimatePresence>
 
-      {/* Mini Dashboard Pelaporan - completely borderless */}
+      {/* Mini Dashboard Pelaporan */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6" id="animals-mini-dashboard">
         <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-gray-500 uppercase">Total Populasi Satwa</span>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Populasi Satwa</span>
             <p className="text-xl font-extrabold text-slate-900 mt-1">{totalCount} Ekor terdaftar</p>
           </div>
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
@@ -291,7 +334,7 @@ export default function AnimalAssets({
 
         <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-gray-500 uppercase">Isu Kesehatan</span>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Isu Kesehatan</span>
             <p className="text-xl font-extrabold text-rose-600 mt-1">
               {sickCount} Satwa Sakit / Rawat
             </p>
@@ -303,7 +346,7 @@ export default function AnimalAssets({
 
         <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-gray-500 uppercase">Kondisi Sehat Prima</span>
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Kondisi Sehat Prima</span>
             <p className="text-xl font-extrabold text-teal-600 mt-1">
               {totalCount - sickCount} Ekor ({totalCount ? Math.round(((totalCount - sickCount) / totalCount) * 100) : 100}%)
             </p>
@@ -314,28 +357,142 @@ export default function AnimalAssets({
         </div>
       </div>
 
-      {/* Filter and Search Panel - completely borderless */}
+      {/* Rekapitulasi Total Satwa per Lokasi Wahana */}
+      <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-4" id="animals-location-summary">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-teal-50 text-teal-700 rounded-xl">
+              <MapPin size={20} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-gray-900 tracking-tight">Total Satwa per Lokasi Wahana</h3>
+              <p className="text-xs text-gray-500">Sebaran populasi koleksi satwa di {locationStats.length} lokasi TMII. Klik lokasi untuk memfilter tabel.</p>
+            </div>
+          </div>
+          {locationFilter !== 'Semua' && (
+            <button
+              onClick={() => setLocationFilter('Semua')}
+              className="text-xs font-semibold px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer self-start sm:self-auto"
+            >
+              Reset Filter Lokasi ({locationFilter}) &times;
+            </button>
+          )}
+        </div>
+
+        {locationStats.length === 0 ? (
+          <div className="text-xs text-gray-400 py-4 text-center">Belum ada data sebaran lokasi satwa.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
+            {locationStats.map(([locName, stats]) => {
+              const isSelected = locationFilter === locName;
+              return (
+                <div
+                  key={locName}
+                  onClick={() => setLocationFilter(isSelected ? 'Semua' : locName)}
+                  className={`p-4 rounded-xl border transition-all cursor-pointer relative ${
+                    isSelected 
+                      ? 'border-teal-600 bg-teal-50/50 shadow-sm ring-2 ring-teal-500/20' 
+                      : 'border-slate-200/70 bg-slate-50/40 hover:bg-white hover:border-slate-300 hover:shadow-xs'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <span className="font-bold text-sm text-gray-900 line-clamp-1" title={locName}>
+                      {locName}
+                    </span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-extrabold shrink-0 ${
+                      isSelected ? 'bg-teal-700 text-white' : 'bg-slate-900 text-white'
+                    }`}>
+                      {stats.total} Ekor
+                    </span>
+                  </div>
+
+                  <div className="text-[11px] text-gray-600 space-y-1">
+                    <div className="flex items-center justify-between font-medium">
+                      <span className="text-emerald-700">✓ {stats.healthy} Sehat</span>
+                      {stats.sick > 0 && (
+                        <span className="text-rose-600 font-bold">! {stats.sick} Perawatan</span>
+                      )}
+                    </div>
+
+                    {/* Breakdown by Type */}
+                    <div className="flex flex-wrap gap-1 pt-1.5 border-t border-slate-200/60 mt-1.5">
+                      {Object.entries(stats.types).map(([typeName, count]) => (
+                        <span key={typeName} className="px-1.5 py-0.5 bg-white text-slate-700 rounded border border-slate-200 text-[10px] font-semibold">
+                          {typeName}: {count}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Filter and Search Panel */}
       <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-4" id="animals-filter-panel">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 items-center">
           
-          <div className="relative md:col-span-4">
+          <div className="relative sm:col-span-2 md:col-span-3">
             <Search className="absolute left-3.5 top-3 text-gray-400" size={16} />
             <input 
               type="text" 
-              placeholder="Cari kode, nama satwa, spesies..." 
+              placeholder="Cari nama, latin, panggilan..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60"
             />
           </div>
 
-          <div className="md:col-span-3">
+          <div className="md:col-span-2">
+            <select 
+              value={locationFilter}
+              onChange={e => setLocationFilter(e.target.value)}
+              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
+            >
+              <option value="Semua">Semua Lokasi</option>
+              {uniqueLocationsList.map(loc => (
+                <option key={loc} value={loc}>{loc}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="md:col-span-2">
+            <select 
+              value={typeFilter}
+              onChange={e => setTypeFilter(e.target.value)}
+              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
+            >
+              <option value="Semua">Semua Jenis</option>
+              <option value="Aves">Aves (Burung)</option>
+              <option value="Reptil">Reptil</option>
+              <option value="Pisces">Pisces (Ikan)</option>
+              <option value="Amfibi">Amfibi</option>
+              <option value="Mamalia">Mamalia</option>
+            </select>
+          </div>
+
+          <div className="md:col-span-2">
+            <select 
+              value={genderFilter}
+              onChange={e => setGenderFilter(e.target.value)}
+              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
+            >
+              <option value="Semua">Semua Gender</option>
+              <option value="Jantan">Jantan</option>
+              <option value="Betina">Betina</option>
+              <option value="Belum Teridentifikasi">Belum Teridentifikasi</option>
+            </select>
+          </div>
+
+          <div className="md:col-span-2">
             <select 
               value={healthFilter}
               onChange={e => setHealthFilter(e.target.value)}
-              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none"
+              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
             >
-              <option value="Semua">Semua Status Kesehatan</option>
+              <option value="Semua">Semua Kesehatan</option>
               <option value="Sehat">Sehat</option>
               <option value="Dalam Perawatan">Dalam Perawatan</option>
               <option value="Sakit">Sakit</option>
@@ -343,22 +500,21 @@ export default function AnimalAssets({
             </select>
           </div>
 
-          <div className="md:col-span-5 flex items-center gap-2">
-            <span className="text-xs font-bold text-gray-400 shrink-0 uppercase tracking-wider">Urutkan:</span>
+          <div className="md:col-span-3 flex items-center gap-2">
             <select 
               value={sortColumn}
               onChange={e => setSortColumn(e.target.value)}
-              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none"
+              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
             >
-              <option value="code">Kode Satwa</option>
-              <option value="name">Nama Satwa</option>
-              <option value="species">Spesies / Jenis</option>
-              <option value="location">Lokasi Kandang</option>
-              <option value="healthStatus">Status Kesehatan</option>
+              <option value="name">Urut: Nama Satwa</option>
+              <option value="latinName">Urut: Nama Latin</option>
+              <option value="type">Urut: Jenis</option>
+              <option value="location">Urut: Lokasi</option>
+              <option value="healthStatus">Urut: Kondisi Kesehatan</option>
             </select>
             <button
               onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
-              className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-gray-500"
+              className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-gray-500 border border-slate-200/60 shrink-0"
               title="Balikkan Arah Urutan"
             >
               <ArrowUpDown size={16} />
@@ -368,84 +524,173 @@ export default function AnimalAssets({
         </div>
       </div>
 
-      {/* Asset Table - completely borderless wrapper */}
+      {/* Asset Table */}
       <div className="bg-white rounded-[24px] shadow-[0_8px_30px_rgba(0,0,0,0.015)] overflow-hidden" id="animals-table-wrapper">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1000px] text-left border-collapse">
+          <table className="w-full min-w-[1100px] text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/60 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                <th className="py-4 px-6">Kode & Nama Satwa</th>
-                <th className="py-4 px-6">Spesies & Kandang</th>
-                <th className="py-4 px-6">Diet / Pola Nutrisi</th>
-                <th className="py-4 px-6">Status Kesehatan</th>
-                <th className="py-4 px-6">Kontrol Medis (Dokter)</th>
-                <th className="py-4 px-6 text-center">Aksi</th>
+              <tr className="bg-slate-50/80 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th 
+                  className="py-4 px-5 cursor-pointer hover:bg-slate-100/60 transition-colors select-none"
+                  onClick={() => {
+                    if (sortColumn === 'name') setSortDirection(p => p === 'asc' ? 'desc' : 'asc');
+                    else { setSortColumn('name'); setSortDirection('asc'); }
+                  }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Nama Satwa
+                    <ArrowUpDown size={13} className={sortColumn === 'name' ? 'text-teal-600 font-bold' : 'text-gray-300'} />
+                  </div>
+                </th>
+                <th 
+                  className="py-4 px-5 cursor-pointer hover:bg-slate-100/60 transition-colors select-none"
+                  onClick={() => {
+                    if (sortColumn === 'latinName') setSortDirection(p => p === 'asc' ? 'desc' : 'asc');
+                    else { setSortColumn('latinName'); setSortDirection('asc'); }
+                  }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Nama Latin
+                    <ArrowUpDown size={13} className={sortColumn === 'latinName' ? 'text-teal-600 font-bold' : 'text-gray-300'} />
+                  </div>
+                </th>
+                <th 
+                  className="py-4 px-5 cursor-pointer hover:bg-slate-100/60 transition-colors select-none"
+                  onClick={() => {
+                    if (sortColumn === 'type') setSortDirection(p => p === 'asc' ? 'desc' : 'asc');
+                    else { setSortColumn('type'); setSortDirection('asc'); }
+                  }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Jenis
+                    <ArrowUpDown size={13} className={sortColumn === 'type' ? 'text-teal-600 font-bold' : 'text-gray-300'} />
+                  </div>
+                </th>
+                <th 
+                  className="py-4 px-5 cursor-pointer hover:bg-slate-100/60 transition-colors select-none"
+                  onClick={() => {
+                    if (sortColumn === 'location') setSortDirection(p => p === 'asc' ? 'desc' : 'asc');
+                    else { setSortColumn('location'); setSortDirection('asc'); }
+                  }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    Lokasi & Detail
+                    <ArrowUpDown size={13} className={sortColumn === 'location' ? 'text-teal-600 font-bold' : 'text-gray-300'} />
+                  </div>
+                </th>
+                <th className="py-4 px-5">Jenis Kelamin</th>
+                <th className="py-4 px-5">Kondisi Kesehatan</th>
+                <th className="py-4 px-5">Panggilan / Kode Khusus</th>
+                <th className="py-4 px-5">Keterangan</th>
+                <th className="py-4 px-5">Log Registrasi</th>
+                <th className="py-4 px-5 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
               {paginatedAnimals.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-gray-400">
+                  <td colSpan={10} className="text-center py-12 text-gray-400">
                     Tidak ada data satwa yang ditemukan.
                   </td>
                 </tr>
               ) : (
                 paginatedAnimals.map(animal => (
-                  <tr key={animal.id} className="hover:bg-slate-50/30 transition-colors">
-                    <td className="py-4 px-6">
-                      <div>
-                        <div 
-                          className="font-mono text-xs font-bold inline-block px-2 py-0.5 rounded-md mb-1"
-                          style={{ backgroundColor: `${theme.primaryColor}15`, color: theme.primaryColor }}
-                        >
-                          {animal.code}
-                        </div>
-                        <div className="font-semibold text-gray-900">{animal.name}</div>
-                      </div>
+                  <tr key={animal.id} className="hover:bg-slate-50/40 transition-colors">
+                    {/* 1. Nama Satwa */}
+                    <td className="py-4 px-5">
+                      <div className="font-bold text-gray-900">{animal.name}</div>
                     </td>
-                    <td className="py-4 px-6 text-xs text-gray-600">
-                      <div className="font-medium text-gray-800">{animal.species}</div>
-                      <div className="text-gray-500 mt-1 flex items-center gap-1">
-                        <Stethoscope size={11} className="text-slate-400" />
-                        <span>Kandang: {animal.location || 'Tidak spesifik'}</span>
-                      </div>
+
+                    {/* 2. Nama Latin */}
+                    <td className="py-4 px-5 text-xs">
+                      <span className="italic font-medium text-slate-700">{animal.latinName || animal.species || '-'}</span>
                     </td>
-                    <td className="py-4 px-6 text-xs text-gray-600">
-                      <div className="max-w-[240px] truncate" title={animal.diet}>
-                        {animal.diet ? (
-                          <span className="bg-slate-100 px-2 py-1 rounded-md text-slate-700 font-medium">{animal.diet}</span>
-                        ) : (
-                          <span className="text-gray-400">Diet belum diinput</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        animal.healthStatus === 'Sehat' ? 'bg-emerald-50 text-emerald-700' :
-                        animal.healthStatus === 'Dalam Perawatan' ? 'bg-amber-50 text-amber-700' :
-                        animal.healthStatus === 'Karantina' ? 'bg-blue-50 text-blue-700' :
-                        'bg-red-50 text-red-700'
+
+                    {/* 3. Jenis */}
+                    <td className="py-4 px-5">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold ${
+                        animal.type === 'Aves' ? 'bg-amber-50 text-amber-800 border border-amber-200/60' :
+                        animal.type === 'Reptil' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/60' :
+                        animal.type === 'Pisces' ? 'bg-cyan-50 text-cyan-800 border border-cyan-200/60' :
+                        animal.type === 'Amfibi' ? 'bg-teal-50 text-teal-800 border border-teal-200/60' :
+                        'bg-purple-50 text-purple-800 border border-purple-200/60'
                       }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${
-                          animal.healthStatus === 'Sehat' ? 'bg-emerald-500' :
-                          animal.healthStatus === 'Dalam Perawatan' ? 'bg-amber-500' :
-                          animal.healthStatus === 'Karantina' ? 'bg-blue-500' :
-                          'bg-red-500'
-                        }`} />
-                        {animal.healthStatus}
+                        {animal.type || 'Aves'}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-xs text-gray-600">
-                      <div className="flex items-center gap-1 text-gray-400">
-                        <Calendar size={12} />
-                        <span>Pengecekan: {animal.lastCheckup || '-'}</span>
+
+                    {/* 4. Lokasi & Detail */}
+                    <td className="py-4 px-5 text-xs">
+                      <div className="font-semibold text-gray-800 flex items-center gap-1">
+                        <MapPin size={12} className="text-slate-400 shrink-0" />
+                        <span>{animal.location || '-'}</span>
                       </div>
-                      <div className="flex items-center gap-1 mt-1 font-semibold text-rose-700">
-                        <Stethoscope size={12} />
-                        <span>Kontrol: {animal.nextCheckup || '-'}</span>
+                      {animal.locationDetail && (
+                        <div className="text-gray-500 text-[11px] mt-0.5 pl-4">
+                          {animal.locationDetail}
+                        </div>
+                      )}
+                    </td>
+
+                    {/* 5. Jenis Kelamin */}
+                    <td className="py-4 px-5 text-xs font-medium text-gray-700">
+                      <span className={`inline-block px-2 py-0.5 rounded text-[11px] ${
+                        animal.gender === 'Jantan' ? 'bg-blue-50 text-blue-700 font-semibold' :
+                        animal.gender === 'Betina' ? 'bg-pink-50 text-pink-700 font-semibold' :
+                        'bg-slate-100 text-slate-600'
+                      }`}>
+                        {animal.gender || 'Belum Teridentifikasi'}
+                      </span>
+                    </td>
+
+                    {/* 6. Kondisi Kesehatan */}
+                    <td className="py-4 px-5">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        (animal.healthStatus || 'Sehat') === 'Sehat' ? 'bg-emerald-50 text-emerald-700' :
+                        animal.healthStatus === 'Dalam Perawatan' ? 'bg-amber-50 text-amber-700' :
+                        animal.healthStatus === 'Karantina' ? 'bg-blue-50 text-blue-700' :
+                        'bg-rose-50 text-rose-700'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          (animal.healthStatus || 'Sehat') === 'Sehat' ? 'bg-emerald-500' :
+                          animal.healthStatus === 'Dalam Perawatan' ? 'bg-amber-500' :
+                          animal.healthStatus === 'Karantina' ? 'bg-blue-500' :
+                          'bg-rose-500'
+                        }`} />
+                        {animal.healthStatus || 'Sehat'}
+                      </span>
+                    </td>
+
+                    {/* 7. Nama Panggilan / Kode Khusus */}
+                    <td className="py-4 px-5 text-xs">
+                      {animal.nicknameOrCode || animal.code ? (
+                        <span className="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded font-semibold">
+                          {animal.nicknameOrCode || animal.code}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 font-normal">-</span>
+                      )}
+                    </td>
+
+                    {/* 8. Keterangan */}
+                    <td className="py-4 px-5 text-xs text-gray-600 max-w-[200px]">
+                      <div className="truncate" title={animal.notes}>
+                        {animal.notes || <span className="text-gray-400 italic">Tidak ada</span>}
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-center">
+
+                    {/* Log Registrasi */}
+                    <td className="py-4 px-5 text-xs">
+                      <div className="font-semibold text-slate-800 truncate" title={animal.createdByName || animal.createdBy || 'Staf TMII'}>
+                        {animal.createdByName || (animal.createdBy ? animal.createdBy.split('@')[0] : 'Staf TMII')}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-mono">
+                        {animal.createdAt ? new Date(animal.createdAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
+                      </div>
+                    </td>
+
+                    {/* 9. Aksi */}
+                    <td className="py-4 px-5 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button 
                           onClick={() => handleOpenEditModal(animal)}
@@ -510,10 +755,13 @@ export default function AnimalAssets({
             className="bg-white rounded-2xl w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto"
           >
             {/* Header */}
-            <div className="p-6 flex justify-between items-center bg-gray-50/50">
-              <h2 className="text-lg font-bold text-gray-900">
-                {editingAnimal ? (isAdmin ? 'Perbarui Data Rekam Medis Satwa' : 'Detail Rekam Medis Satwa') : 'Registrasi Satwa Baru'}
-              </h2>
+            <div className="p-6 flex justify-between items-center bg-gray-50/50 border-b border-gray-100">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">
+                  {editingAnimal ? (isAdmin ? 'Edit Data Satwa Wahana' : 'Detail Data Satwa') : 'Registrasi Satwa Baru'}
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">Field bertanda <span className="text-red-500 font-bold">*</span> wajib diisi</p>
+              </div>
               <button 
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600 text-xl font-bold cursor-pointer"
@@ -524,62 +772,136 @@ export default function AnimalAssets({
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <fieldset disabled={!isAdmin} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Kode Satwa / Register *</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={formCode}
-                    onChange={e => setFormCode(e.target.value)}
-                    placeholder="Contoh: TMII-STW-001"
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm"
-                  />
+              {/* Registration Log Banner */}
+              {editingAnimal && (
+                <div className="p-3.5 bg-blue-50/80 border border-blue-200/80 rounded-2xl flex items-start sm:items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <UserCheck size={16} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900">
+                          Diregistrasi oleh: <span className="text-blue-700 font-extrabold">{editingAnimal.createdByName || editingAnimal.createdBy || 'Staf TMII'}</span>
+                        </span>
+                        {editingAnimal.createdBy && editingAnimal.createdByName && (
+                          <span className="text-[11px] text-slate-500 font-mono">({editingAnimal.createdBy})</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] text-slate-600 mt-0.5 font-medium">
+                        <Clock size={12} className="text-slate-400" />
+                        <span>Waktu Registrasi: {editingAnimal.createdAt ? new Date(editingAnimal.createdAt).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' }) : 'Tidak tercatat'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span className="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                    Log Sistem
+                  </span>
                 </div>
-
+              )}
+              <fieldset disabled={editingAnimal !== null && !isAdmin} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 1. Nama Satwa (Mandatory) */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Nama Satwa *</label>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Nama Satwa <span className="text-red-500">*</span>
+                  </label>
                   <input 
                     type="text" 
                     required
                     value={formName}
                     onChange={e => setFormName(e.target.value)}
-                    placeholder="Contoh: Rambo / Koko"
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm"
+                    placeholder="Contoh: Elang Bondol / Gajah Sumatera"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-medium"
                   />
                 </div>
 
+                {/* 2. Nama Latin (Mandatory) */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Spesies / Jenis Satwa *</label>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Nama Latin <span className="text-red-500">*</span>
+                  </label>
                   <input 
                     type="text" 
                     required
-                    value={formSpecies}
-                    onChange={e => setFormSpecies(e.target.value)}
-                    placeholder="Contoh: Burung Elang Bondol"
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm"
+                    value={formLatinName}
+                    onChange={e => setFormLatinName(e.target.value)}
+                    placeholder="Contoh: Haliastur indus"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-medium italic"
                   />
                 </div>
 
+                {/* 3. Jenis (Mandatory: Aves, Reptil, Pisces, Amfibi, Mamalia) */}
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                    Lokasi Wahana / Kandang <span className="normal-case font-normal text-[11px] text-amber-800">(Fitur Auto-fill Ketik / Pilih)</span>
+                    Jenis <span className="text-red-500">*</span>
+                  </label>
+                  <select 
+                    required
+                    value={formType}
+                    onChange={e => setFormType(e.target.value as AnimalAsset['type'])}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-medium"
+                  >
+                    <option value="Aves">Aves (Burung / Unggas)</option>
+                    <option value="Reptil">Reptil</option>
+                    <option value="Pisces">Pisces (Ikan)</option>
+                    <option value="Amfibi">Amfibi</option>
+                    <option value="Mamalia">Mamalia</option>
+                  </select>
+                </div>
+
+                {/* 4. Lokasi (Mandatory) */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Lokasi <span className="text-red-500">*</span>
                   </label>
                   <LocationAutoComplete
                     value={formLocation}
                     onChange={(val) => setFormLocation(val)}
                     locations={configuredLocations}
-                    placeholder="Ketik atau pilih lokasi kandang satwa..."
+                    placeholder="Contoh: Taman Burung / Taman Satwa"
                   />
                 </div>
 
+                {/* 5. Detail Lokasi (Optional) */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Status Kesehatan *</label>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Detail Lokasi <span className="text-gray-400 font-normal lowercase">(opsional)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={formLocationDetail}
+                    onChange={e => setFormLocationDetail(e.target.value)}
+                    placeholder="Contoh: Kandang Kubah Barat, Paddock 2"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                  />
+                </div>
+
+                {/* 6. Jenis Kelamin (Optional: Jantan, Betina, Belum Teridentifikasi) */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Jenis Kelamin <span className="text-gray-400 font-normal lowercase">(opsional)</span>
+                  </label>
+                  <select 
+                    value={formGender}
+                    onChange={e => setFormGender(e.target.value as NonNullable<AnimalAsset['gender']>)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-medium"
+                  >
+                    <option value="Jantan">Jantan</option>
+                    <option value="Betina">Betina</option>
+                    <option value="Belum Teridentifikasi">Belum Teridentifikasi</option>
+                  </select>
+                </div>
+
+                {/* 7. Kondisi Kesehatan (Optional) */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Kondisi Kesehatan <span className="text-gray-400 font-normal lowercase">(opsional)</span>
+                  </label>
                   <select 
                     value={formHealthStatus}
-                    onChange={e => setFormHealthStatus(e.target.value as AnimalAsset['healthStatus'])}
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm"
+                    onChange={e => setFormHealthStatus(e.target.value)}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm font-medium"
                   >
                     <option value="Sehat">Sehat</option>
                     <option value="Dalam Perawatan">Dalam Perawatan</option>
@@ -588,45 +910,31 @@ export default function AnimalAssets({
                   </select>
                 </div>
 
+                {/* 8. Nama Panggilan / Kode Khusus (Optional) */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Diet / Pola Nutrisi</label>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Nama Panggilan / Kode Khusus <span className="text-gray-400 font-normal lowercase">(opsional)</span>
+                  </label>
                   <input 
                     type="text" 
-                    value={formDiet}
-                    onChange={e => setFormDiet(e.target.value)}
-                    placeholder="Contoh: Ikan segar 1kg, 2x sehari"
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm"
+                    value={formNicknameOrCode}
+                    onChange={e => setFormNicknameOrCode(e.target.value)}
+                    placeholder="Contoh: Bimo / EB-001"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Tanggal Cek Medis Terakhir</label>
-                  <input 
-                    type="date" 
-                    value={formLastCheckup}
-                    onChange={e => setFormLastCheckup(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Tanggal Kontrol Berikutnya</label>
-                  <input 
-                    type="date" 
-                    value={formNextCheckup}
-                    onChange={e => setFormNextCheckup(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm"
-                  />
-                </div>
-
+                {/* 9. Keterangan (Optional) */}
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Histori Perawatan / Riwayat Medis</label>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Keterangan <span className="text-gray-400 font-normal lowercase">(opsional)</span>
+                  </label>
                   <textarea 
-                    rows={4}
-                    value={formMedicalHistory}
-                    onChange={e => setFormMedicalHistory(e.target.value)}
-                    placeholder="Keterangan keluhan sakit, obat yang diberikan, vitamin tambahan, catatan dokter hewan..."
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-sm"
+                    rows={3}
+                    value={formNotes}
+                    onChange={e => setFormNotes(e.target.value)}
+                    placeholder="Catatan tambahan mengenai perilaku, instruksi perawatan khusus, dsb."
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                   />
                 </div>
               </div>
@@ -634,21 +942,21 @@ export default function AnimalAssets({
               </fieldset>
 
               {/* Footer */}
-              <div className="pt-4 flex justify-end gap-3">
+              <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
                 <button 
                   type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-sm transition-colors cursor-pointer"
                 >
-                  {isAdmin ? 'Batal' : 'Tutup'}
+                  {(!editingAnimal || isAdmin) ? 'Batal' : 'Tutup'}
                 </button>
-                {isAdmin && (
+                {(!editingAnimal || isAdmin) && (
                   <button 
                     type="submit"
                     className="px-5 py-2 text-white font-semibold rounded-xl text-sm shadow-md transition-colors cursor-pointer"
                     style={{ backgroundColor: theme.primaryColor }}
                   >
-                    {editingAnimal ? 'Simpan Rekam Medis' : 'Registrasi Satwa'}
+                    {editingAnimal ? 'Simpan Perubahan' : 'Registrasi Satwa'}
                   </button>
                 )}
               </div>

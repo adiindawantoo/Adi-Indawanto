@@ -18,7 +18,18 @@
         "driveFileUrl": { "type": "string" },
         "driveFileName": { "type": "string" },
         "createdAt": { "type": "string" },
-        "notes": { "type": "string" }
+        "notes": { "type": "string" },
+        "source": { "type": "string" },
+        "reporterName": { "type": "string" },
+        "reporterContact": { "type": "string" },
+        "ticketNumber": { "type": "string" },
+        "reportType": { "type": "string" },
+        "assetCode": { "type": "string" },
+        "assetName": { "type": "string" },
+        "locationArea": { "type": "string" },
+        "locationDetail": { "type": "string" },
+        "isUntagged": { "type": "boolean" },
+        "photoUrl": { "type": "string" }
       },
       "required": ["title", "status", "priority", "category"]
     },
@@ -30,16 +41,30 @@
         "id": { "type": "string" },
         "code": { "type": "string" },
         "name": { "type": "string" },
+        "classification": { "type": "string", "enum": ["Aset", "LVA"] },
         "brand": { "type": "string" },
+        "ownership": { "type": "string" },
+        "area": { "type": "string" },
         "location": { "type": "string" },
+        "category": { "type": "string" },
+        "type": { "type": "string" },
         "acquisitionDate": { "type": "string" },
         "acquisitionCost": { "type": "number" },
-        "condition": { "type": "string", "enum": ["Baik", "Rusak Ringan", "Rusak Berat"] },
+        "depreciationMethod": { "type": "string", "enum": ["Garis Lurus", "Saldo Menurun", "Tidak Disusutkan"] },
+        "usefulLifeGroup": { "type": "string" },
+        "usefulLife": { "type": "string" },
+        "salvageValue": { "type": "number" },
+        "condition": { "type": "string", "enum": ["Baik", "Rusak Ringan", "Rusak Berat", "Demolished"] },
         "status": { "type": "string", "enum": ["Aktif", "Non-Aktif", "Diperbaiki", "Dihapuskan"] },
+        "photoUrl": { "type": "string" },
+        "driveFileUrl": { "type": "string" },
+        "driveFileName": { "type": "string" },
         "lastMaintenance": { "type": "string" },
         "nextMaintenance": { "type": "string" },
         "notes": { "type": "string" },
-        "createdAt": { "type": "string" }
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdByName": { "type": "string" }
       },
       "required": ["code", "name", "condition", "status"]
     },
@@ -58,7 +83,9 @@
         "nextCheckup": { "type": "string" },
         "diet": { "type": "string" },
         "medicalHistory": { "type": "string" },
-        "createdAt": { "type": "string" }
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdByName": { "type": "string" }
       },
       "required": ["code", "name", "species", "healthStatus"]
     },
@@ -76,7 +103,9 @@
         "ipAddress": { "type": "string" },
         "lastMaintenance": { "type": "string" },
         "notes": { "type": "string" },
-        "createdAt": { "type": "string" }
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdByName": { "type": "string" }
       },
       "required": ["code", "name", "location", "status"]
     },
@@ -97,7 +126,9 @@
         "lastMaintenance": { "type": "string" },
         "nextMaintenance": { "type": "string" },
         "notes": { "type": "string" },
-        "createdAt": { "type": "string" }
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdByName": { "type": "string" }
       },
       "required": ["code", "name", "category", "status"]
     },
@@ -117,7 +148,9 @@
         "condition": { "type": "string", "enum": ["Utuh", "Rusak Sebagian", "Rusak Parah"] },
         "description": { "type": "string" },
         "driveFileUrl": { "type": "string" },
-        "createdAt": { "type": "string" }
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdByName": { "type": "string" }
       },
       "required": ["registerNo", "name", "museumName", "condition"]
     },
@@ -134,12 +167,15 @@
     },
     "asset_location": {
       "title": "Asset Location",
-      "description": "Configured location setting in TMII",
+      "description": "Configured location setting in TMII with Google Maps coordinates",
       "type": "object",
       "properties": {
         "name": { "type": "string" },
         "region": { "type": "string" },
+        "category": { "type": "string" },
         "description": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
         "createdAt": { "type": "string" }
       },
       "required": ["name", "region"]
