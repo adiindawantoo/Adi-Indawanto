@@ -1,9 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FixedAsset, AppTheme } from '../types';
-import { Search, Printer, CheckSquare, Square, Check, RefreshCw, Eye, EyeOff, LayoutGrid, Download } from 'lucide-react';
+import { Search, Printer, CheckSquare, Square, Check, Eye, EyeOff, LayoutGrid, Download, ExternalLink, X, AlertCircle } from 'lucide-react';
 import TmiiLogo from './TmiiLogo';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import { 
+  LabelPaperSize, 
+  generateAssetTagPDF, 
+  generatePrintableHtml, 
+  generateQrDataUrl 
+} from '../lib/tagPdfGenerator';
+
+export type { LabelPaperSize };
 
 interface FixedAssetsTaggingProps {
   assets: FixedAsset[];
@@ -16,7 +22,10 @@ export default function FixedAssetsTagging({ assets, theme }: FixedAssetsTagging
   const [locationFilter, setLocationFilter] = useState('Semua');
   const [classificationFilter, setClassificationFilter] = useState('Semua');
   const [showPreview, setShowPreview] = useState(true);
-  const [isPrinting, setIsPrinting] = useState(false);
+  const [paperSize, setPaperSize] = useState<LabelPaperSize>('60x30');
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [qrCodeMap, setQrCodeMap] = useState<Record<string, string>>({});
 
   // Available filters
   const uniqueLocations = useMemo(() => {
@@ -54,10 +63,8 @@ export default function FixedAssetsTagging({ assets, theme }: FixedAssetsTagging
     const allSelected = currentFilteredIds.every(id => selectedIds.includes(id));
 
     if (allSelected) {
-      // Deselect all filtered items
       setSelectedIds(prev => prev.filter(id => !currentFilteredIds.includes(id)));
     } else {
-      // Select all filtered items
       setSelectedIds(prev => {
         const union = new Set([...prev, ...currentFilteredIds]);
         return Array.from(union);
@@ -69,109 +76,135 @@ export default function FixedAssetsTagging({ assets, theme }: FixedAssetsTagging
     return assets.filter(a => selectedIds.includes(a.id));
   }, [assets, selectedIds]);
 
-  // Handle print action
-  const handlePrint = () => {
-    if (selectedAssets.length === 0) return;
-    setIsPrinting(true);
-    setTimeout(() => {
-      window.print();
-      setIsPrinting(false);
-    }, 500);
-  };
+  // Pre-generate QR data URLs for selected assets to ensure instant, sharp preview
+  useEffect(() => {
+    let isCancelled = false;
+    const generateQrs = async () => {
+      const newMap: Record<string, string> = { ...qrCodeMap };
+      for (const asset of selectedAssets) {
+        if (!newMap[asset.code]) {
+          const dataUrl = await generateQrDataUrl(asset.code);
+          if (!isCancelled && dataUrl) {
+            newMap[asset.code] = dataUrl;
+          }
+        }
+      }
+      if (!isCancelled) {
+        setQrCodeMap(newMap);
+      }
+    };
 
-  const downloadSingleTagPDF = async (asset: FixedAsset) => {
+    if (selectedAssets.length > 0) {
+      generateQrs();
+    }
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedAssets]);
+
+  // High-fidelity Isolated Iframe Print & Fallback
+  const handlePrint = async () => {
+    if (selectedAssets.length === 0) return;
+
     try {
-      const element = document.getElementById(`preview-tag-${asset.id}`);
-      if (!element) {
-        alert('Gagal mendeteksi pratinjau label. Pastikan pratinjau ditampilkan.');
-        return;
+      // 1. Generate clean isolated print HTML for thermal label printer
+      const printableHtml = await generatePrintableHtml(selectedAssets, paperSize);
+
+      // 2. Remove existing print iframe if any
+      const existingIframe = document.getElementById('thermal-label-print-frame');
+      if (existingIframe) {
+        existingIframe.remove();
       }
 
-      const canvas = await html2canvas(element, {
-        scale: 3, // High print resolution
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        onclone: (clonedDoc) => {
-          const styleTags = clonedDoc.querySelectorAll('style');
-          styleTags.forEach((style) => {
-            if (style.textContent && style.textContent.includes('oklch')) {
-              style.textContent = style.textContent.replace(/oklch\([^)]+\)/g, '#000000');
-            }
-          });
-          const allElements = clonedDoc.querySelectorAll('*');
-          allElements.forEach((el) => {
-            const htmlEl = el as HTMLElement;
-            if (htmlEl.style && htmlEl.style.cssText && htmlEl.style.cssText.includes('oklch')) {
-              htmlEl.style.cssText = htmlEl.style.cssText.replace(/oklch\([^)]+\)/g, '#000000');
-            }
-          });
-        }
-      });
+      // 3. Create invisible isolated print iframe
+      const iframe = document.createElement('iframe');
+      iframe.id = 'thermal-label-print-frame';
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      iframe.style.visibility = 'hidden';
+      document.body.appendChild(iframe);
 
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: [60, 30]
-      });
+      const frameDoc = iframe.contentWindow?.document;
+      if (frameDoc) {
+        frameDoc.open();
+        frameDoc.write(printableHtml);
+        frameDoc.close();
 
-      pdf.addImage(imgData, 'PNG', 0, 0, 60, 30);
-      pdf.save(`Label_${asset.code}_${asset.name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+        // Allow images & styles to render then invoke print dialog
+        setTimeout(() => {
+          try {
+            iframe.contentWindow?.focus();
+            iframe.contentWindow?.print();
+          } catch (err) {
+            console.warn("Iframe print triggered fallback:", err);
+            window.focus();
+            window.print();
+          }
+        }, 300);
+      } else {
+        window.focus();
+        window.print();
+      }
+
+      // Also open print assistant modal to guide user if browser blocks dialog
+      setShowPrintModal(true);
     } catch (error) {
-      console.error("Gagal mengunduh PDF label:", error);
-      alert("Gagal mengunduh PDF label. Silakan coba kembali.");
+      console.error("Error initiating print:", error);
+      window.focus();
+      window.print();
+      setShowPrintModal(true);
     }
   };
 
+  // Open standalone print page in new tab (bypasses all iframe print blocks)
+  const openPrintInNewTab = async () => {
+    if (selectedAssets.length === 0) return;
+    try {
+      const printableHtml = await generatePrintableHtml(selectedAssets, paperSize);
+      const blob = new Blob([printableHtml], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const newWin = window.open(url, '_blank');
+      if (newWin) {
+        newWin.focus();
+      } else {
+        alert("Browser memblokir pembukaan tab baru. Izinkan pop-up untuk situs ini atau gunakan opsi Unduh PDF.");
+      }
+    } catch (error) {
+      console.error("Gagal membuka halaman cetak:", error);
+    }
+  };
+
+  // Vector-sharp PDF download for single asset tag
+  const downloadSingleTagPDF = async (asset: FixedAsset) => {
+    try {
+      setIsGeneratingPdf(true);
+      const pdf = await generateAssetTagPDF([asset], paperSize);
+      pdf.save(`Label_${paperSize}_${asset.code}_${asset.name.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+    } catch (error) {
+      console.error("Gagal mengunduh PDF label:", error);
+      alert("Gagal mengunduh PDF label. Silakan coba kembali.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // Vector-sharp PDF download for all selected asset tags
   const downloadAllTagsPDF = async () => {
     if (selectedAssets.length === 0) return;
     try {
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: [60, 30]
-      });
-
-      for (let i = 0; i < selectedAssets.length; i++) {
-        const asset = selectedAssets[i];
-        const element = document.getElementById(`preview-tag-${asset.id}`);
-        if (!element) continue;
-
-        if (i > 0) {
-          pdf.addPage([60, 30], 'landscape');
-        }
-
-        const canvas = await html2canvas(element, {
-          scale: 3,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          onclone: (clonedDoc) => {
-            const styleTags = clonedDoc.querySelectorAll('style');
-            styleTags.forEach((style) => {
-              if (style.textContent && style.textContent.includes('oklch')) {
-                style.textContent = style.textContent.replace(/oklch\([^)]+\)/g, '#000000');
-              }
-            });
-            const allElements = clonedDoc.querySelectorAll('*');
-            allElements.forEach((el) => {
-              const htmlEl = el as HTMLElement;
-              if (htmlEl.style && htmlEl.style.cssText && htmlEl.style.cssText.includes('oklch')) {
-                htmlEl.style.cssText = htmlEl.style.cssText.replace(/oklch\([^)]+\)/g, '#000000');
-              }
-            });
-          }
-        });
-
-        const imgData = canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', 0, 0, 60, 30);
-      }
-
-      pdf.save(`Label_Tagging_Aset_${selectedAssets.length}_pcs.pdf`);
+      setIsGeneratingPdf(true);
+      const pdf = await generateAssetTagPDF(selectedAssets, paperSize);
+      pdf.save(`Label_Tagging_${paperSize}_${selectedAssets.length}_pcs.pdf`);
     } catch (error) {
       console.error("Gagal mengunduh semua PDF label:", error);
       alert("Gagal mengunduh semua PDF label. Silakan coba kembali.");
+    } finally {
+      setIsGeneratingPdf(false);
     }
   };
 
@@ -186,28 +219,67 @@ export default function FixedAssetsTagging({ assets, theme }: FixedAssetsTagging
               Cetak Tagging QR Code Aset
             </h3>
             <p className="text-xs text-slate-500 mt-1">
-              Pilih satu atau beberapa aset tetap untuk dicetak label tagging fisiknya (BW/Hitam-Putih 60x30mm). Label memuat QR Code besar, Logo TMII, Nama Aset penuh, dan Lokasi.
+              Pilih satu atau beberapa aset tetap untuk dicetak label tagging fisiknya. Mendukung ukuran <strong className="text-slate-700 font-semibold">60x30mm (Standar)</strong> dan <strong className="text-slate-700 font-semibold">50x20mm (Kompak/Mini Roll)</strong>.
             </p>
-            <div className="mt-1.5 text-[10px] bg-amber-50 text-amber-800 px-3 py-1 rounded-lg border border-amber-100 font-medium max-w-xl inline-block">
-              Tip: Jika pencetakan terhambat oleh frame browser, silakan klik tombol <strong>"Buka di Tab Baru"</strong> di kanan atas, atau gunakan fitur <strong>"Unduh Semua Label (PDF)"</strong> untuk mengunduh seluruh label sekaligus.
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              {/* Paper Size Selector */}
+              <div className="flex items-center gap-1.5 bg-slate-100/90 p-1 rounded-xl border border-slate-200/60">
+                <span className="text-[10px] font-black uppercase text-slate-500 px-2 tracking-wider">Ukuran Label:</span>
+                <button
+                  type="button"
+                  onClick={() => setPaperSize('60x30')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    paperSize === '60x30'
+                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80 font-black'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  60 x 30 mm <span className="text-[10px] opacity-70 font-normal">(Standar)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaperSize('50x20')}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    paperSize === '50x20'
+                      ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80 font-black'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  50 x 20 mm <span className="text-[10px] opacity-70 font-normal">(Kompak)</span>
+                </button>
+              </div>
+
+              <div className="text-[10px] bg-amber-50 text-amber-800 px-3 py-1 rounded-lg border border-amber-100 font-medium inline-block">
+                Tip: Thermal printer akan mencetak pas sesuai ukuran roll terpilih (<strong>{paperSize === '50x20' ? '50 x 20 mm' : '60 x 30 mm'}</strong>).
+              </div>
             </div>
           </div>
+
           <div className="flex flex-wrap gap-2 shrink-0">
             <button
               onClick={downloadAllTagsPDF}
-              disabled={selectedAssets.length === 0}
+              disabled={selectedAssets.length === 0 || isGeneratingPdf}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              title="Unduh semua label sebagai dokumen PDF"
+              title={`Unduh semua label (${paperSize}) sebagai dokumen PDF`}
             >
               <Download size={14} />
-              <span>Unduh Semua Label (PDF) ({selectedAssets.length})</span>
+              <span>{isGeneratingPdf ? 'Membuat PDF...' : `Unduh PDF (${paperSize}) (${selectedAssets.length})`}</span>
+            </button>
+            <button
+              onClick={openPrintInNewTab}
+              disabled={selectedAssets.length === 0}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              title="Buka halaman cetak di tab baru browser (bebas dari pembatasan iframe)"
+            >
+              <ExternalLink size={14} />
+              <span>Buka di Tab Baru</span>
             </button>
             <button
               onClick={() => setShowPreview(!showPreview)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
             >
               {showPreview ? <EyeOff size={14} /> : <Eye size={14} />}
-              <span>{showPreview ? 'Sembunyikan Preview' : 'Tampilkan Preview'}</span>
+              <span>{showPreview ? 'Sembunyikan' : 'Preview'}</span>
             </button>
             <button
               onClick={handlePrint}
@@ -338,16 +410,38 @@ export default function FixedAssetsTagging({ assets, theme }: FixedAssetsTagging
           {showPreview && (
             <div className="lg:col-span-5 space-y-4">
               <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-200/40 shadow-inner h-full flex flex-col">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
                   <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
                     <LayoutGrid size={14} />
                     Pratinjau Label Tagging ({selectedAssets.length})
                   </h4>
-                  {selectedAssets.length > 0 && (
-                    <span className="text-[9px] bg-slate-200 text-slate-700 font-extrabold px-2 py-0.5 rounded-full">
-                      Sticker Silver PET Matte (60x30mm)
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setPaperSize('60x30')}
+                      className={`text-[9px] px-2.5 py-1 rounded-full font-extrabold transition-all cursor-pointer ${
+                        paperSize === '60x30'
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'bg-slate-200/80 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      60 x 30 mm
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaperSize('50x20')}
+                      className={`text-[9px] px-2.5 py-1 rounded-full font-extrabold transition-all cursor-pointer ${
+                        paperSize === '50x20'
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'bg-slate-200/80 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      50 x 20 mm
+                    </button>
+                    <span className="text-[9px] bg-indigo-50 text-indigo-700 font-extrabold px-2 py-0.5 rounded-full border border-indigo-100">
+                      Thermal Silver ({paperSize === '50x20' ? '50×20mm' : '60×30mm'})
                     </span>
-                  )}
+                  </div>
                 </div>
 
                 {selectedAssets.length === 0 ? (
@@ -366,79 +460,127 @@ export default function FixedAssetsTagging({ assets, theme }: FixedAssetsTagging
                         ? (asset.location.toLowerCase().startsWith('lokasi') ? asset.location : `Lokasi ${asset.location}`)
                         : 'Lokasi TMII';
 
+                      const is50x20 = paperSize === '50x20';
+                      const qrSrc = qrCodeMap[asset.code] || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(asset.code)}`;
+
                       return (
                         <div
                           key={asset.id}
-                          id={`preview-tag-${asset.id}`}
-                          className="relative overflow-hidden flex shadow-md shrink-0 bg-white"
-                          style={{
-                            width: '60mm',
-                            height: '30mm',
-                            minWidth: '60mm',
-                            minHeight: '30mm',
-                            padding: '2.5mm 3mm',
-                            boxSizing: 'border-box',
-                            border: '1.5px solid #000000',
-                            borderRadius: '2px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '2.5mm',
-                            backgroundColor: '#ffffff',
-                            color: '#000000'
-                          }}
+                          className="flex flex-col items-center bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs transition-all hover:shadow-md"
                         >
-                          {/* Download PDF button (Screen only) */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              downloadSingleTagPDF(asset);
+                          {/* Physical Sticker Representation */}
+                          <div
+                            id={`preview-tag-${asset.id}`}
+                            className="relative overflow-hidden flex bg-white select-none shrink-0"
+                            style={{
+                              width: is50x20 ? '50mm' : '60mm',
+                              height: is50x20 ? '20mm' : '30mm',
+                              minWidth: is50x20 ? '50mm' : '60mm',
+                              minHeight: is50x20 ? '20mm' : '30mm',
+                              maxWidth: is50x20 ? '50mm' : '60mm',
+                              maxHeight: is50x20 ? '20mm' : '30mm',
+                              padding: is50x20 ? '1.2mm 1.6mm' : '2mm 2.5mm',
+                              boxSizing: 'border-box',
+                              border: '1px dashed #cbd5e1',
+                              borderRadius: '2px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: is50x20 ? '1.8mm' : '2.5mm',
+                              backgroundColor: '#ffffff',
+                              color: '#000000'
                             }}
-                            className="absolute top-1 right-1 p-1 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded shadow-sm print:hidden transition-colors cursor-pointer z-10"
-                            title="Unduh Label PDF"
                           >
-                            <Download size={11} />
-                          </button>
+                            {/* 1. QR Code (Left Column) */}
+                            <div 
+                              className="shrink-0 flex items-center justify-center" 
+                              style={{ 
+                                width: is50x20 ? '14.8mm' : '22.8mm', 
+                                height: is50x20 ? '14.8mm' : '22.8mm' 
+                              }}
+                            >
+                              <img
+                                src={qrSrc}
+                                alt={`QR ${asset.code}`}
+                                className="object-contain pointer-events-none"
+                                style={{ 
+                                  width: is50x20 ? '14.8mm' : '22.8mm', 
+                                  height: is50x20 ? '14.8mm' : '22.8mm' 
+                                }}
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
 
-                          {/* 1. Large QR Code (Left Column) */}
-                          <div className="shrink-0 flex items-center justify-center" style={{ width: '24mm', height: '24mm' }}>
-                            <img
-                              src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(asset.code)}`}
-                              alt={`QR ${asset.code}`}
-                              className="w-[24mm] h-[24mm] object-contain pointer-events-none"
-                              referrerPolicy="no-referrer"
-                            />
+                            {/* 2. Metadata Details (Right Column) */}
+                            <div 
+                              className="flex-1 flex flex-col justify-between min-w-0 pr-0.5 text-black font-sans"
+                              style={{ height: is50x20 ? '16.5mm' : '25.5mm' }}
+                            >
+                              {/* Top part: Logo, Code, Name */}
+                              <div className="flex flex-col min-w-0">
+                                {/* TMII Logo */}
+                                <div className="mb-0.5">
+                                  <TmiiLogo height={is50x20 ? '0.62rem' : '0.85rem'} color="#000000" />
+                                </div>
+
+                                {/* Asset Code */}
+                                <div 
+                                  className={`font-black text-black leading-tight tracking-tight break-all ${
+                                    is50x20 ? 'text-[7.5px]' : 'text-[9.5px]'
+                                  }`}
+                                >
+                                  {asset.code}
+                                </div>
+
+                                {/* Asset Name (Plain Block with clean line-height and max-height) */}
+                                <div 
+                                  style={{
+                                    fontSize: is50x20 ? '6.5px' : '7.5px',
+                                    lineHeight: '1.15',
+                                    maxHeight: is50x20 ? '5.4mm' : '8.5mm',
+                                    overflow: 'hidden',
+                                    wordBreak: 'break-word',
+                                    fontWeight: 500,
+                                    color: '#000000',
+                                    marginTop: '0.5px'
+                                  }}
+                                  title={asset.name}
+                                >
+                                  {asset.name}
+                                </div>
+                              </div>
+
+                              {/* Bottom part: Line & Location */}
+                              <div className="min-w-0 pt-0.5">
+                                <div className={`border-black w-full ${is50x20 ? 'border-b-[1px] mb-0.5' : 'border-b-[1.5px] mb-1'}`}></div>
+                                <div 
+                                  style={{
+                                    fontSize: is50x20 ? '6.8px' : '8.5px',
+                                    fontWeight: 800,
+                                    lineHeight: '1.1',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    color: '#000000'
+                                  }}
+                                >
+                                  {displayLocation}
+                                </div>
+                              </div>
+                            </div>
                           </div>
 
-                          {/* 2. Metadata Details (Right Column) */}
-                          <div className="flex-1 flex flex-col justify-between h-[25mm] min-w-0 pr-1 text-black font-sans">
-                            {/* Top part: Logo, Code, Name */}
-                            <div className="flex flex-col min-w-0">
-                              {/* tmii Logo */}
-                              <div className="mb-0.5">
-                                <TmiiLogo height="0.85rem" color="#000000" />
-                              </div>
-
-                              {/* Asset Code */}
-                              <div className="font-extrabold text-[9.5px] text-black leading-tight tracking-tight break-all">
-                                {asset.code}
-                              </div>
-
-                              {/* Asset Name */}
-                              <div 
-                                className="font-medium text-[7.5px] text-black leading-[1.2] mt-0.5 break-words whitespace-normal line-clamp-3" 
-                                title={asset.name}
-                              >
-                                {asset.name}
-                              </div>
-                            </div>
-
-                            {/* Bottom part: Line & Location */}
-                            <div className="min-w-0 pt-0.5">
-                              <div className="border-b-[1.5px] border-black mb-1 w-full"></div>
-                              <div className="font-extrabold text-[8.5px] text-black leading-tight truncate">
-                                {displayLocation}
-                              </div>
-                            </div>
+                          {/* Footer action: External Download Button (Never gets captured inside sticker) */}
+                          <div className="flex items-center justify-between w-full mt-2.5 pt-2 border-t border-slate-100">
+                            <span className="text-[10px] font-mono font-bold text-slate-400">{asset.code}</span>
+                            <button
+                              onClick={() => downloadSingleTagPDF(asset)}
+                              disabled={isGeneratingPdf}
+                              className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg text-[10px] font-bold border border-slate-200 transition-colors cursor-pointer disabled:opacity-50"
+                              title={`Unduh PDF siap cetak (${paperSize})`}
+                            >
+                              <Download size={11} />
+                              <span>Unduh PDF ({paperSize})</span>
+                            </button>
                           </div>
                         </div>
                       );
@@ -451,8 +593,8 @@ export default function FixedAssetsTagging({ assets, theme }: FixedAssetsTagging
         </div>
       </div>
 
-      {/* PRINT-ONLY AREA (This is hidden in screen view and only shown when printing) */}
-      <div className="hidden print:block bg-white text-black p-0 m-0" id="print-tags-container">
+      {/* PRINT-ONLY AREA (Clean CSS for direct native print) */}
+      <div id="print-tags-container" style={{ display: 'none' }}>
         <style>{`
           @media print {
             body {
@@ -466,38 +608,38 @@ export default function FixedAssetsTagging({ assets, theme }: FixedAssetsTagging
               visibility: visible !important;
             }
             #print-tags-container {
+              display: flex !important;
               position: absolute !important;
               left: 0 !important;
               top: 0 !important;
               width: 100% !important;
               margin: 0 !important;
-              padding: 2mm !important;
-              display: flex !important;
+              padding: 1mm !important;
               flex-wrap: wrap !important;
-              gap: 3mm !important;
+              gap: 2mm !important;
               justify-content: flex-start !important;
             }
             @page {
-              size: auto;
+              size: ${paperSize === '50x20' ? '50mm 20mm' : '60mm 30mm'};
               margin: 0mm;
             }
             .silver-matte-print-sticker {
-              width: 60mm !important;
-              height: 30mm !important;
-              min-width: 60mm !important;
-              min-height: 30mm !important;
-              max-width: 60mm !important;
-              max-height: 30mm !important;
-              padding: 2.5mm 3mm !important;
+              width: ${paperSize === '50x20' ? '50mm' : '60mm'} !important;
+              height: ${paperSize === '50x20' ? '20mm' : '30mm'} !important;
+              min-width: ${paperSize === '50x20' ? '50mm' : '60mm'} !important;
+              min-height: ${paperSize === '50x20' ? '20mm' : '30mm'} !important;
+              max-width: ${paperSize === '50x20' ? '50mm' : '60mm'} !important;
+              max-height: ${paperSize === '50x20' ? '20mm' : '30mm'} !important;
+              padding: ${paperSize === '50x20' ? '1.2mm 1.6mm' : '2mm 2.5mm'} !important;
               box-sizing: border-box !important;
-              border: 1.5px solid #000000 !important;
-              background: #ffffff !important; /* Pure black & white */
+              border: none !important;
+              background: #ffffff !important;
               border-radius: 2px !important;
               page-break-inside: avoid !important;
               break-inside: avoid !important;
               display: flex !important;
               align-items: center !important;
-              gap: 2.5mm !important;
+              gap: ${paperSize === '50x20' ? '1.8mm' : '2.5mm'} !important;
               position: relative !important;
               overflow: hidden !important;
               color: #000000 !important;
@@ -511,47 +653,75 @@ export default function FixedAssetsTagging({ assets, theme }: FixedAssetsTagging
             ? (asset.location.toLowerCase().startsWith('lokasi') ? asset.location : `Lokasi ${asset.location}`)
             : 'Lokasi TMII';
 
+          const is50x20 = paperSize === '50x20';
+          const qrSrc = qrCodeMap[asset.code] || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(asset.code)}`;
+
           return (
             <div
               key={asset.id}
               className="silver-matte-print-sticker"
             >
-              {/* 1. Large QR Code (Left Column) */}
-              <div className="shrink-0 flex items-center justify-center" style={{ width: '24mm', height: '24mm' }}>
+              <div 
+                className="shrink-0 flex items-center justify-center" 
+                style={{ 
+                  width: is50x20 ? '14.8mm' : '22.8mm', 
+                  height: is50x20 ? '14.8mm' : '22.8mm' 
+                }}
+              >
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(asset.code)}`}
+                  src={qrSrc}
                   alt={`QR ${asset.code}`}
-                  className="w-[24mm] h-[24mm] object-contain"
-                  referrerPolicy="no-referrer"
+                  style={{ 
+                    width: is50x20 ? '14.8mm' : '22.8mm', 
+                    height: is50x20 ? '14.8mm' : '22.8mm' 
+                  }}
+                  className="object-contain"
                 />
               </div>
 
-              {/* 2. Metadata Details (Right Column) */}
-              <div className="flex-1 flex flex-col justify-between h-[25mm] min-w-0 pr-1 text-black font-sans">
-                {/* Top part: Logo, Code, Name */}
+              <div 
+                className="flex-1 flex flex-col justify-between min-w-0 pr-0.5 text-black font-sans"
+                style={{ height: is50x20 ? '16.5mm' : '25.5mm' }}
+              >
                 <div className="flex flex-col min-w-0">
-                  {/* tmii Logo */}
                   <div className="mb-0.5">
-                    <TmiiLogo height="0.85rem" color="#000000" />
+                    <TmiiLogo height={is50x20 ? '0.62rem' : '0.85rem'} color="#000000" />
                   </div>
 
-                  {/* Asset Code */}
-                  <div className="font-extrabold text-[9.5px] text-black leading-tight tracking-tight break-all">
+                  <div 
+                    className={`font-black text-black leading-tight tracking-tight break-all ${
+                      is50x20 ? 'text-[7.5px]' : 'text-[9.5px]'
+                    }`}
+                  >
                     {asset.code}
                   </div>
 
-                  {/* Asset Name */}
                   <div 
-                    className="font-medium text-[7.5px] text-black leading-[1.2] mt-0.5 break-words whitespace-normal"
+                    style={{
+                      fontSize: is50x20 ? '6.5px' : '7.5px',
+                      lineHeight: '1.15',
+                      maxHeight: is50x20 ? '5.4mm' : '8.5mm',
+                      overflow: 'hidden',
+                      wordBreak: 'break-word',
+                      fontWeight: 500
+                    }}
                   >
                     {asset.name}
                   </div>
                 </div>
 
-                {/* Bottom part: Line & Location */}
                 <div className="min-w-0 pt-0.5">
-                  <div className="border-b-[1.5px] border-black mb-1 w-full"></div>
-                  <div className="font-extrabold text-[8.5px] text-black leading-tight truncate">
+                  <div className={`border-black w-full ${is50x20 ? 'border-b-[1px] mb-0.5' : 'border-b-[1.5px] mb-1'}`}></div>
+                  <div 
+                    style={{
+                      fontSize: is50x20 ? '6.8px' : '8.5px',
+                      fontWeight: 800,
+                      lineHeight: '1.1',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
                     {displayLocation}
                   </div>
                 </div>
@@ -560,6 +730,116 @@ export default function FixedAssetsTagging({ assets, theme }: FixedAssetsTagging
           );
         })}
       </div>
+
+      {/* PRINT ASSISTANT MODAL (Shown when clicking Cetak Tagging to ensure successful printing in all browser environments) */}
+      {showPrintModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center" style={{ color: theme.primaryColor }}>
+                  <Printer size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    Pengaturan & Cetak Label Tagging
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Ukuran kertas aktif: <strong className="text-slate-800 font-semibold">{paperSize === '50x20' ? '50 x 20 mm (Kompak)' : '60 x 30 mm (Standar)'}</strong> ({selectedAssets.length} aset)
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowPrintModal(false)}
+                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="mt-4 p-4 rounded-2xl bg-amber-50/80 border border-amber-200/60 text-amber-900 text-xs space-y-2">
+              <div className="flex items-center gap-2 font-bold text-amber-800">
+                <AlertCircle size={16} />
+                <span>Status Perintah Cetak Printer:</span>
+              </div>
+              <p className="leading-relaxed">
+                Perintah cetak thermal sudah dikirim ke browser. Pada beberapa browser (terutama saat aplikasi berada di dalam iframe preview), dialog cetak dapat terhambat oleh kebijakan keamanan browser.
+              </p>
+            </div>
+
+            <div className="mt-4 space-y-2.5">
+              <div className="text-xs font-bold text-slate-700">Pilih metode cetak yang paling praktis untuk Anda:</div>
+              
+              {/* Option 1: PDF Download */}
+              <button
+                onClick={() => {
+                  downloadAllTagsPDF();
+                  setShowPrintModal(false);
+                }}
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/20 text-left transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-indigo-100 text-slate-700 group-hover:text-indigo-700 flex items-center justify-center transition-colors">
+                    <Download size={16} />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-900">Unduh Dokumen PDF Siap Cetak (Disarankan)</div>
+                    <div className="text-[11px] text-slate-500">File PDF berukuran tepat {paperSize === '50x20' ? '50mm x 20mm' : '60mm x 30mm'} per halaman vektor tajam.</div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100">
+                  Rekomendasi
+                </span>
+              </button>
+
+              {/* Option 2: Open in New Tab */}
+              <button
+                onClick={() => {
+                  openPrintInNewTab();
+                  setShowPrintModal(false);
+                }}
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-left transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors">
+                    <ExternalLink size={16} />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-900">Buka di Tab Baru Browser</div>
+                    <div className="text-[11px] text-slate-500">Bebas dari pembatasan iframe. Tekan Ctrl+P di tab baru untuk mencetak langsung.</div>
+                  </div>
+                </div>
+              </button>
+
+              {/* Option 3: Retry Direct Print */}
+              <button
+                onClick={() => {
+                  window.focus();
+                  window.print();
+                }}
+                className="w-full flex items-center gap-3 p-3.5 rounded-2xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-left transition-all cursor-pointer group"
+              >
+                <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors">
+                  <Printer size={16} />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900">Kirim Ulang ke Dialog Print Browser</div>
+                  <div className="text-[11px] text-slate-500">Coba picu kembali dialog cetak bawaan browser.</div>
+                </div>
+              </button>
+            </div>
+
+            <div className="mt-5 flex justify-end">
+              <button
+                onClick={() => setShowPrintModal(false)}
+                className="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

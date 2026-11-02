@@ -443,8 +443,19 @@ export default function App() {
       const result = await googleSignIn();
       if (result) {
         await handleAuthSuccess(result.user, result.accessToken);
+      } else {
+        // Pengguna menutup / membatalkan jendela popup sign-in
+        setLoading(false);
       }
     } catch (err: any) {
+      if (
+        err?.code === 'auth/popup-closed-by-user' || 
+        err?.code === 'auth/cancelled-popup-request' ||
+        err?.message?.includes('popup-closed-by-user')
+      ) {
+        setLoading(false);
+        return;
+      }
       console.error(err);
       setAuthError(err.message || 'Gagal login menggunakan Google.');
       setLoading(false);

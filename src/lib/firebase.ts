@@ -51,15 +51,16 @@ export const initAuth = (
 ) => {
   return onAuthStateChanged(auth, async (user: User | null) => {
     if (user) {
-      const token = getCachedToken();
-      if (token) {
-        if (onAuthSuccess) onAuthSuccess(user, token);
-      } else {
-        // Jika user aktif tapi token di storage hilang, panggil failure (hanya jika tidak sedang login)
-        if (!isSigningIn) {
-          if (onAuthFailure) onAuthFailure();
+      let token = getCachedToken();
+      if (!token) {
+        try {
+          token = await user.getIdToken();
+          setCachedToken(token);
+        } catch {
+          token = '';
         }
       }
+      if (onAuthSuccess) onAuthSuccess(user, token || '');
     } else {
       setCachedToken(null);
       if (onAuthFailure) onAuthFailure();
@@ -73,13 +74,33 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
     isSigningIn = true;
     const result = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
-    if (!credential?.accessToken) {
-      throw new Error('Gagal mendapatkan token akses dari Google Auth');
+    const token = credential?.accessToken || (await result.user.getIdToken()) || '';
+
+    setCachedToken(token);
+    return { user: result.user, accessToken: token };
+  } catch (error: any) {
+    // Penanganan khusus ketika user sengaja / tidak sengaja menutup popup Google Sign-In
+    if (
+      error?.code === 'auth/popup-closed-by-user' ||
+      error?.code === 'auth/cancelled-popup-request' ||
+      error?.message?.includes('popup-closed-by-user')
+    ) {
+      console.info('Login Google dibatalkan oleh pengguna (popup ditutup).');
+      return null;
     }
 
-    setCachedToken(credential.accessToken);
-    return { user: result.user, accessToken: credential.accessToken };
-  } catch (error: any) {
+    // Penanganan jika browser memblokir popup
+    if (error?.code === 'auth/popup-blocked') {
+      console.warn('Popup login diblokir oleh browser.');
+      throw new Error('Jendela popup login terblokir oleh browser. Harap izinkan pop-up untuk situs ini atau coba buka aplikasi di tab baru.');
+    }
+
+    // Penanganan jika ada gangguan jaringan
+    if (error?.code === 'auth/network-request-failed') {
+      console.warn('Koneksi jaringan terputus saat proses autentikasi.');
+      throw new Error('Koneksi internet bermasalah. Harap periksa jaringan Anda dan coba lagi.');
+    }
+
     console.error('Kesalahan masuk Google:', error);
     throw error;
   } finally {
