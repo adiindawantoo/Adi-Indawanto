@@ -203,6 +203,20 @@ export default function App() {
     }
   };
 
+  // Ensure dark mode class and storage are cleaned up
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('tmii_dark_mode');
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.removeProperty('--dark-bg-base');
+      document.documentElement.style.removeProperty('--dark-glass-bg');
+      document.documentElement.style.removeProperty('--dark-glass-border');
+      document.documentElement.style.removeProperty('--dark-card-bg');
+      document.documentElement.style.removeProperty('--dark-card-border');
+      document.documentElement.style.removeProperty('--dark-panel-bg');
+    }
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -907,40 +921,48 @@ export default function App() {
     );
   }
 
-  // Beautiful render loading
+  // Beautiful Apple Liquid Glass Loading Screen
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh/0.82)] w-full bg-[#FAF8F5] text-slate-800 font-sans relative" id="loading-screen">
-        <div className="relative flex flex-col items-center z-10 text-center px-6">
+      <div className="flex flex-col items-center justify-center min-h-screen w-full bg-[#F6F8FC] text-slate-800 font-sans relative overflow-hidden" id="loading-screen">
+        <BatikBackground themeId="jawa" />
+        <div className="relative flex flex-col items-center z-10 text-center px-8 py-10 apple-glass rounded-[32px] max-w-sm w-full mx-4 shadow-2xl">
           <div className="relative w-16 h-16 mb-6 flex items-center justify-center">
-            {/* Soft pulsing ring similar to TMII branding */}
-            <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
+            {/* Specular Liquid Glowing Rings */}
+            <div className="absolute inset-0 rounded-full border-4 border-slate-200/60"></div>
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#0B6B5D] animate-spin"></div>
+            <div className="w-8 h-8 rounded-full bg-emerald-500/10 blur-xs"></div>
           </div>
-          <div className="mb-3">
-            <TmiiLogo height="4rem" color="#0B6B5D" className="mx-auto" />
+          <div className="mb-4 p-3.5 bg-white/60 backdrop-blur-md rounded-2xl border border-white/80 shadow-xs">
+            <TmiiLogo height="3.5rem" color="#0B6B5D" className="mx-auto" />
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 font-sans">
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 font-display">
             TMII Asset Management
           </h2>
-          <div className="mt-2 text-xs font-medium text-slate-500 tracking-wider animate-pulse">
-            Memuat data sistem...
+          <div className="mt-2 text-xs font-semibold text-slate-500 tracking-wider flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+            <span>Memuat sistem visionOS...</span>
           </div>
         </div>
       </div>
     );
   }
 
-  // Login screen
+  // Login screen: Apple VisionOS Spatial Glassmorphism Portal
   if (!currentUser) {
     return (
-      <div className="w-full min-h-screen bg-[#FAF8F5] flex flex-col lg:flex-row text-slate-800 font-sans relative overflow-hidden" id="auth-screen">
+      <div className="w-full min-h-screen bg-[#F6F8FC] flex flex-col lg:flex-row text-slate-800 font-sans relative overflow-hidden" id="auth-screen">
         
-        {/* LEFT COMPONENT (CULTURAL HERO BANNER): Rich Indonesian Cultural Theme */}
-        <div className="hidden lg:flex flex-col justify-between w-1/2 min-h-screen relative overflow-hidden bg-gradient-to-br from-[#07241A] via-[#0E3B2D] to-[#04150F] p-10 xl:p-14 text-white shadow-2xl border-r border-[#D4AF37]/30 shrink-0" id="auth-cultural-banner">
+        {/* LEFT COMPONENT: Apple VisionOS Spatial Dark Glass Canvas */}
+        <div className="hidden lg:flex flex-col justify-between w-1/2 min-h-screen relative overflow-hidden bg-gradient-to-br from-[#051812] via-[#092B21] to-[#03100B] p-10 xl:p-14 text-white shadow-2xl border-r border-white/10 shrink-0" id="auth-cultural-banner">
           
+          {/* Spatial Ambient Liquid Caustics & Glowing Nodes */}
+          <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-emerald-500/20 rounded-full blur-[140px] pointer-events-none"></div>
+          <div className="absolute top-1/3 -right-24 w-[450px] h-[450px] bg-[#D4AF37]/15 rounded-full blur-[130px] pointer-events-none"></div>
+          <div className="absolute -bottom-32 left-1/4 w-[550px] h-[550px] bg-emerald-600/15 rounded-full blur-[150px] pointer-events-none"></div>
+
           {/* Floating Batik Cultural Background Overlay showcasing 5 islands */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-25">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
             <div className="absolute -top-12 -left-12 rotate-12">
               <BatikSongket size={320} color="#D4AF37" />
             </div>
@@ -956,18 +978,15 @@ export default function App() {
             <div className="absolute -bottom-14 -right-12 -rotate-6">
               <BatikAsmat size={300} color="#D4AF37" />
             </div>
-            {/* Gold Radial Glows */}
-            <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-[#D4AF37]/15 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#C0392B]/10 rounded-full blur-3xl pointer-events-none"></div>
           </div>
 
-          {/* Top Banner Tag */}
+          {/* Top Banner Tag: Frosted Glass Capsule */}
           <div className="z-10 flex items-center justify-between">
-            <span className="bg-white/10 backdrop-blur-md text-[#F3E5AB] border border-[#D4AF37]/50 px-5 py-2 text-xs sm:text-sm font-bold tracking-widest rounded-full uppercase flex items-center gap-2 shadow-md">
-              <BatikKawung size={18} color="#D4AF37" />
+            <span className="bg-white/10 backdrop-blur-xl text-[#F3E5AB] border border-white/20 px-5 py-2 text-xs font-bold tracking-widest rounded-full uppercase flex items-center gap-2 shadow-lg shadow-black/20">
+              <BatikKawung size={16} color="#D4AF37" />
               TAMAN MINI INDONESIA INDAH
             </span>
-            <span className="text-xs sm:text-sm font-bold text-[#D4AF37] tracking-widest uppercase flex items-center gap-2 bg-[#D4AF37]/10 border border-[#D4AF37]/30 px-4 py-1.5 rounded-full">
+            <span className="text-xs font-bold text-[#F3E5AB] tracking-widest uppercase flex items-center gap-2 bg-white/10 backdrop-blur-xl border border-[#D4AF37]/40 px-4 py-1.5 rounded-full shadow-sm">
               <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-ping"></span>
               PESONA NUSANTARA
             </span>
@@ -975,15 +994,15 @@ export default function App() {
 
           {/* Main Hero Content */}
           <div className="z-10 my-auto space-y-7 max-w-xl">
-            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-white/20 via-white/10 to-transparent backdrop-blur-xl p-4 sm:p-5 rounded-3xl border border-[#D4AF37]/40 shadow-2xl">
-              <TmiiLogo height="4.2rem" color="#ffffff" />
+            <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-2xl p-5 rounded-3xl border border-white/25 shadow-2xl apple-liquid-rim">
+              <TmiiLogo height="4.5rem" color="#ffffff" />
             </div>
 
-            <div className="space-y-2">
-              <span className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-[#D4AF37] block">
-                Portal Terpadu
+            <div className="space-y-3">
+              <span className="text-xs font-black uppercase tracking-widest text-[#D4AF37] block">
+                Portal Terpadu Manajemen Kawasan
               </span>
-              <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight text-white leading-tight font-sans drop-shadow-md">
+              <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight text-white leading-tight font-display drop-shadow-md">
                 Sistem Terpadu <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F3E5AB] via-[#D4AF37] to-[#E5C158]">
                   Manajemen Aset
@@ -991,26 +1010,24 @@ export default function App() {
               </h1>
             </div>
 
-            <p className="text-sm xl:text-base text-slate-200/90 leading-relaxed font-medium max-w-lg">
-              Mendukung pelestarian, pencatatan, dan pemeliharaan seluruh aset Taman Mini Indonesia Indah secara akurat, modern, dan berkelanjutan.
+            <p className="text-sm xl:text-base text-slate-200/90 leading-relaxed font-normal max-w-lg">
+              Mendukung pelestarian, pencatatan, dan pemeliharaan seluruh aset Taman Mini Indonesia Indah secara presisi dalam ekosistem Apple VisionOS Glassmorphism.
             </p>
-
-
           </div>
 
           {/* Footer Copyright */}
-          <div className="z-10 pt-5 border-t border-white/15 flex items-center justify-between text-xs sm:text-sm text-slate-300/80 font-medium">
+          <div className="z-10 pt-5 border-t border-white/15 flex items-center justify-between text-xs text-slate-300/80 font-medium">
             <span>&copy; 2026 PT Bhumi Visatanda Indonesia</span>
             <span className="text-[#D4AF37] font-bold">Taman Mini Indonesia Indah</span>
           </div>
         </div>
 
-        {/* RIGHT COMPONENT (LOGIN WORKSPACE): Elegant Alabaster & Batik Accent Workspace */}
-        <div className="flex-1 flex flex-col justify-between p-8 sm:p-12 xl:p-16 min-h-screen overflow-y-auto bg-[#FAF8F5] relative z-10" id="auth-workspace">
-          {/* Subtle Cultural Batik background watermarks */}
+        {/* RIGHT COMPONENT: Liquid Glass Workspace with Ambient Caustics */}
+        <div className="flex-1 flex flex-col justify-between p-8 sm:p-12 xl:p-16 min-h-screen overflow-y-auto bg-gradient-to-b from-[#F6F8FC] via-[#EDF2FA] to-[#F6F8FC] relative z-10" id="auth-workspace">
+          {/* Subtle Cultural Batik background with ambient caustics */}
           <BatikBackground themeId="terracotta" />
 
-          {/* Top header with Live Clock */}
+          {/* Top header with Live Clock in VisionOS Glass Capsule */}
           <div className="flex items-center justify-between z-10 w-full mb-6" id="auth-header">
             <div className="flex items-center gap-2.5">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -1019,29 +1036,29 @@ export default function App() {
               </span>
             </div>
 
-            <div className="text-xs sm:text-sm font-bold text-slate-700 flex items-center gap-2.5 bg-white px-5 py-2.5 rounded-full border border-[#D4AF37]/30 shadow-xs">
+            <div className="text-xs sm:text-sm font-bold text-slate-700 flex items-center gap-2.5 apple-glass px-5 py-2.5 rounded-full shadow-sm">
               <Clock size={15} className="text-[#0B6B5D]" />
               <span>{currentTime.toLocaleTimeString('id-ID')} WIB</span>
             </div>
           </div>
 
-          {/* Middle Login Card */}
+          {/* Middle Login Card in Floating Apple Liquid Glass */}
           <div className="max-w-lg w-full mx-auto my-auto py-8 flex flex-col items-center z-10" id="auth-content">
             <motion.div 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 180 }}
-              className="w-full bg-white/95 backdrop-blur-xl border border-[#D4AF37]/40 rounded-[36px] p-8 sm:p-11 shadow-[0_25px_60px_rgba(11,43,32,0.08)] text-center space-y-7 relative overflow-hidden"
+              className="w-full apple-glass-card rounded-[36px] p-8 sm:p-11 text-center space-y-7 relative overflow-hidden shadow-[0_30px_70px_rgba(15,23,42,0.1)] border border-white/80"
             >
               {/* Subtle top golden line decorative border */}
-              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#0F382C] via-[#D4AF37] to-[#0F382C]"></div>
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#0F382C] via-[#D4AF37] to-[#0F382C]"></div>
 
               <div className="flex flex-col items-center pt-2">
-                {/* TMII Logo Preserved */}
-                <div className="mb-5 p-4 bg-[#F4F8F6] rounded-2xl border border-[#0B6B5D]/20 shadow-inner">
-                  <TmiiLogo height="4.8rem" color="#0B6B5D" />
+                {/* TMII Logo Preserved in Frosted Specular Glass Container */}
+                <div className="mb-5 p-4 apple-glass rounded-2xl shadow-inner border border-white/90">
+                  <TmiiLogo height="4.5rem" color="#0B6B5D" />
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-display">
                   Masuk Portal Aset
                 </h2>
                 <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-sm mt-2 mx-auto font-medium">
@@ -1049,14 +1066,14 @@ export default function App() {
                 </p>
               </div>
 
-              {/* Module Icons Badge Strip */}
-              <div className="flex items-center justify-center gap-3 py-2 px-4 bg-[#FAF8F5] rounded-xl border border-slate-200/80 text-xs sm:text-sm font-semibold text-slate-700 shadow-2xs">
+              {/* Module Icons Badge Strip in Glass Capsule */}
+              <div className="flex items-center justify-center gap-3 py-2 px-4 apple-glass-pill rounded-full text-xs font-semibold text-slate-700">
                 <span>🏛️ Fixed Assets</span>
-                <span>•</span>
+                <span className="text-slate-300">·</span>
                 <span>🦜 Satwa</span>
-                <span>•</span>
+                <span className="text-slate-300">·</span>
                 <span>⚙️ MEP</span>
-                <span>•</span>
+                <span className="text-slate-300">·</span>
                 <span>📜 Museum</span>
               </div>
 
@@ -1065,17 +1082,17 @@ export default function App() {
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs sm:text-sm text-left flex gap-3 items-start"
+                  className="p-4 bg-red-50/90 backdrop-blur-md border border-red-200 text-red-700 rounded-2xl text-xs sm:text-sm text-left flex gap-3 items-start shadow-xs"
                 >
                   <ShieldAlert size={20} className="text-red-500 shrink-0 mt-0.5" />
                   <span className="leading-relaxed font-medium">{authError}</span>
                 </motion.div>
               )}
 
-              {/* Google Login Button with Elegant Deep Emerald / Golden Accent */}
+              {/* Google Login Button: macOS Liquid Glass Button */}
               <button 
                 onClick={handleLogin}
-                className="w-full inline-flex items-center justify-center gap-3.5 bg-gradient-to-r from-[#0F382C] via-[#144A3A] to-[#0F382C] hover:from-[#144A3A] hover:to-[#1B634E] text-white font-bold py-4 px-8 rounded-2xl shadow-xl shadow-[#0F382C]/25 border border-[#D4AF37]/50 hover:border-[#D4AF37] transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-base sm:text-lg"
+                className="w-full inline-flex items-center justify-center gap-3.5 bg-gradient-to-r from-[#0F382C] via-[#144A3A] to-[#0F382C] hover:from-[#144A3A] hover:to-[#1B634E] text-white font-bold py-4 px-8 rounded-2xl shadow-xl shadow-[#0F382C]/25 border border-white/30 hover:border-[#D4AF37] transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-base sm:text-lg apple-liquid-rim"
                 id="google-signin-btn"
               >
                 <svg className="w-6 h-6 mr-1 fill-white" viewBox="0 0 24 24">
@@ -1090,16 +1107,16 @@ export default function App() {
                 <div className="flex-grow border-t border-slate-200/80"></div>
               </div>
 
-              {/* Guest Report Portal Trigger Button */}
+              {/* Guest Report Portal Trigger Button in Frosted Glass */}
               <button
                 type="button"
                 onClick={() => setIsGuestPortalOpen(true)}
-                className="w-full inline-flex items-center justify-between p-3.5 bg-emerald-50/80 hover:bg-emerald-100/90 text-slate-900 rounded-2xl border border-emerald-300/80 transition-all text-left cursor-pointer group shadow-2xs"
+                className="w-full inline-flex items-center justify-between p-3.5 apple-glass hover:bg-white text-slate-900 rounded-2xl border border-emerald-300/60 transition-all text-left cursor-pointer group shadow-xs"
                 id="btn-guest-report-portal"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#0B6B5D] text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <AlertTriangle size={20} />
+                  <div className="w-10 h-10 rounded-xl bg-[#0B6B5D] text-white flex items-center justify-center shrink-0 shadow-md">
+                    <AlertTriangle size={18} />
                   </div>
                   <div>
                     <div className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-emerald-900 transition-colors">
@@ -1113,51 +1130,57 @@ export default function App() {
                 <ChevronRight size={18} className="text-emerald-700 group-hover:translate-x-1 transition-transform shrink-0" />
               </button>
 
-              <div className="text-xs sm:text-sm text-slate-500 leading-relaxed pt-1 max-w-xs mx-auto font-medium">
+              <div className="text-xs text-slate-500 leading-relaxed pt-1 max-w-xs mx-auto font-medium">
                 Khusus akun Google Workspace / Email Resmi Karyawan TMII yang terdaftar dalam Whitelist Otorisasi.
               </div>
             </motion.div>
           </div>
 
           {/* Workspace Footer */}
-          <div className="text-center text-xs sm:text-sm text-slate-500 font-semibold tracking-wide z-10 pt-4" id="auth-footer">
-            &copy; 2026 PT Bhumi Visatanda Indonesia
+          <div className="text-center text-xs text-slate-500 font-semibold tracking-wide z-10 pt-4" id="auth-footer">
+            &copy; 2026 PT Bhumi Visatanda Indonesia · TMII Asset Management
           </div>
         </div>
       </div>
     );
   }
 
-  // Render authorized main dashboard in beautiful Samsung One UI Light style
+  // Render authorized main dashboard in Apple Liquid Glass & macOS VisionOS style
   return (
-    <div className="min-h-screen flex-1 bg-[#F4F5FA] flex text-slate-800 font-sans relative" id="main-layout">
-      {/* Clean cultural background pattern */}
+    <div 
+      className="min-h-screen flex-1 flex font-sans relative overflow-x-hidden transition-colors duration-500 bg-[#F6F8FC] text-slate-900" 
+      id="main-layout"
+    >
+      {/* Clean cultural background pattern with dynamic ambient caustics */}
       <BatikBackground themeId={currentTheme.id} />
 
-      {/* LEFT SIDEBAR FOR DESKTOP */}
-      <aside className="w-72 bg-white flex flex-col shrink-0 border-r border-slate-200/80 hidden md:flex shadow-[4px_0_24px_rgba(0,0,0,0.015)] min-h-screen h-full self-stretch sticky top-0 z-30" id="sidebar">
+      {/* FLOATING LEFT SIDEBAR FOR DESKTOP (Apple macOS Sequoia / VisionOS Spatial Sidebar) */}
+      <aside 
+        className="w-72 rounded-[28px] apple-glass flex flex-col shrink-0 hidden md:flex h-fit fixed top-3.5 left-3.5 z-30 transition-all duration-300 shadow-2xl border border-white/80 overflow-hidden" 
+        id="sidebar"
+      >
         {/* Brand Header */}
-        <div className="p-7 pb-5 border-b border-slate-100">
-          <div className="mb-4">
-            <TmiiLogo height="4rem" color={currentTheme.primaryColor} className="mr-auto" />
+        <div className="p-6 pb-5 border-b border-white/60 shrink-0">
+          <div className="mb-3.5 p-2.5 rounded-2xl border shadow-xs inline-block bg-white/50 backdrop-blur-md border-white/80">
+            <TmiiLogo height="3.5rem" color={currentTheme.primaryColor} />
           </div>
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-base font-bold tracking-wide text-slate-800 block leading-tight">
-              Sistem Manajemen Aset
+            <span className="text-base font-extrabold tracking-tight block leading-tight font-display text-slate-900">
+              Manajemen Aset
             </span>
-            <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wider">
-              BETA
+            <span className="bg-amber-100 text-amber-900 text-[9px] font-black px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wider border border-amber-300/60">
+              TMII
             </span>
           </div>
-          <p className="text-[10px] text-slate-400 font-semibold mt-1 tracking-wider uppercase">Taman Mini Indonesia Indah</p>
+          <p className="text-[10px] text-slate-400 font-bold mt-1 tracking-wider uppercase">Taman Mini Indonesia Indah</p>
         </div>
 
-        {/* Navigation links - One UI Rounded Pills */}
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto" id="sidebar-nav">
+        {/* Navigation links - locked to Pengaturan without scroll */}
+        <nav className="p-3 space-y-1" id="sidebar-nav">
           {/* Dashboard and Tasks */}
           {[
-            { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-            { id: 'tasks', label: 'Task Monitoring', icon: CheckSquare },
+            { id: 'dashboard', label: 'Dashboard Utama', icon: LayoutDashboard },
+            { id: 'tasks', label: 'Monitoring Tugas', icon: CheckSquare },
           ].map(item => {
             const isActive = activeTab === item.id;
             const Icon = item.icon;
@@ -1165,14 +1188,17 @@ export default function App() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
-                className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer ${
+                className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                   isActive 
-                    ? 'text-white shadow-md' 
-                    : 'text-slate-500 hover:text-slate-950 hover:bg-slate-50'
+                    ? 'text-white shadow-lg border border-white/40' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
                 }`}
-                style={isActive ? { backgroundColor: currentTheme.primaryColor, boxShadow: `0 4px 12px ${currentTheme.primaryColor}30` } : {}}
+                style={isActive ? { 
+                  backgroundColor: currentTheme.primaryColor, 
+                  boxShadow: `0 8px 20px -4px ${currentTheme.primaryColor}45` 
+                } : {}}
               >
-                <Icon size={18} />
+                <Icon size={17} />
                 <span>{item.label}</span>
               </button>
             );
@@ -1182,14 +1208,14 @@ export default function App() {
           <div className="space-y-1">
             <button
               onClick={() => setIsFixedAssetsMenuOpen(!isFixedAssetsMenuOpen)}
-              className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer ${
+              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                 activeTab.startsWith('fixed-assets')
-                  ? 'bg-slate-50 text-slate-900 border border-slate-100/50'
-                  : 'text-slate-500 hover:text-slate-950 hover:bg-slate-50'
+                  ? 'bg-white/80 text-slate-950 border border-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-950 hover:bg-white/70'
               }`}
             >
               <div className="flex items-center gap-3.5">
-                <Database size={18} style={activeTab.startsWith('fixed-assets') ? { color: currentTheme.primaryColor } : {}} />
+                <Database size={17} style={activeTab.startsWith('fixed-assets') ? { color: currentTheme.primaryColor } : {}} />
                 <span>Aset Tetap</span>
               </div>
               <span className="text-[10px] text-slate-400 font-extrabold transform transition-transform duration-250 shrink-0" style={{ transform: isFixedAssetsMenuOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>
@@ -1199,7 +1225,7 @@ export default function App() {
 
             {/* Collapsible Submenus */}
             {isFixedAssetsMenuOpen && (
-              <div className="pl-4 space-y-1 mt-1 border-l-2 border-slate-100 ml-6">
+              <div className="pl-3 space-y-1 mt-1 border-l-2 ml-5 border-slate-200/60">
                 {[
                   { id: 'fixed-assets', label: 'Database' },
                   { id: 'fixed-assets-depreciation', label: 'Depresiasi & Nilai Buku' },
@@ -1214,10 +1240,10 @@ export default function App() {
                     <button
                       key={sub.id}
                       onClick={() => setActiveTab(sub.id as any)}
-                      className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 cursor-pointer ${
+                      className={`w-full text-left px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                         isSubActive
-                          ? 'text-white shadow-xs'
-                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                          ? 'text-white shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                       }`}
                       style={isSubActive ? { backgroundColor: currentTheme.primaryColor } : {}}
                     >
@@ -1243,89 +1269,81 @@ export default function App() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
-                className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer ${
+                className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                   isActive 
-                    ? 'text-white shadow-md' 
-                    : 'text-slate-500 hover:text-slate-950 hover:bg-slate-50'
+                    ? 'text-white shadow-lg border border-white/40' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
                 }`}
-                style={isActive ? { backgroundColor: currentTheme.primaryColor, boxShadow: `0 4px 12px ${currentTheme.primaryColor}30` } : {}}
+                style={isActive ? { 
+                  backgroundColor: currentTheme.primaryColor, 
+                  boxShadow: `0 8px 20px -4px ${currentTheme.primaryColor}45` 
+                } : {}}
               >
-                <Icon size={18} />
+                <Icon size={17} />
                 <span>{item.label}</span>
               </button>
             );
           })}
         </nav>
-
-        {/* User profile section at bottom */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-3 mb-3">
-            {currentUser?.photoURL ? (
-              <img src={currentUser.photoURL} alt="User photo" className="w-10 h-10 rounded-full border border-slate-200 shadow-sm shrink-0" referrerPolicy="no-referrer" />
-            ) : (
-              <div className="w-10 h-10 bg-slate-200 flex items-center justify-center text-slate-600 rounded-full shadow-sm shrink-0 font-black">
-                {(currentUser?.displayName || 'A').charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <div className="text-xs font-black text-slate-800 truncate leading-tight">{currentUser?.displayName || 'Karyawan TMII'}</div>
-              <div className="text-[10px] text-slate-400 truncate font-semibold mt-0.5">{currentUser?.email}</div>
-            </div>
-          </div>
-          <button 
-            onClick={() => setShowLogoutModal(true)}
-            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-600 border border-slate-200 font-bold py-2.5 px-4 rounded-xl text-xs transition-colors cursor-pointer shadow-xs"
-          >
-            <LogOut size={13} />
-            <span>Keluar Sistem</span>
-          </button>
-        </div>
       </aside>
 
       {/* RIGHT MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen relative z-10 md:ml-[19.25rem]">
         
-        {/* HEADER BAR (CLEAN, TRANSPARENT/FOLLOW BACKGROUND COLOR) */}
-        <header className="px-6 md:px-8 py-5 flex items-center justify-between bg-transparent" id="main-header">
+        {/* FLOATING GLASS HEADER BAR */}
+        <header 
+          className="mx-4 md:mx-6 mt-3.5 mb-2 px-5 py-3.5 apple-glass rounded-2xl flex items-center justify-between z-20 shadow-md border border-white/80" 
+          id="main-header"
+        >
           {/* Brand/Identity for Mobile only (hidden on Desktop since sidebar has it) */}
           <div className="flex items-center gap-3 md:hidden">
-            <TmiiLogo height="3rem" color={currentTheme.primaryColor} />
+            <TmiiLogo height="2.8rem" color={currentTheme.primaryColor} />
             <div>
               <div className="flex items-center gap-1.5 flex-wrap">
-                <h1 className="text-xs font-bold tracking-wide text-slate-900 leading-tight block">Sistem Manajemen Aset</h1>
-                <span className="bg-amber-100 text-amber-800 text-[8px] font-black px-1 py-0.5 rounded shrink-0 uppercase tracking-wider scale-90">
-                  BETA
+                <h1 className="text-xs font-bold tracking-tight leading-tight block font-display text-slate-900">
+                  Manajemen Aset
+                </h1>
+                <span className="bg-amber-100 text-amber-900 text-[8px] font-black px-1.5 py-0.5 rounded-full shrink-0 uppercase tracking-wider">
+                  TMII
                 </span>
               </div>
-              <p className="text-[9px] font-semibold text-slate-400 tracking-wider mt-1 uppercase whitespace-nowrap">Taman Mini Indonesia Indah</p>
+              <p className="text-[9px] font-semibold text-slate-400 tracking-wider mt-0.5 uppercase whitespace-nowrap">Taman Mini Indonesia Indah</p>
             </div>
           </div>
 
           {/* Desktop header title */}
           <div className="hidden md:flex items-center gap-3">
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight capitalize">
+            <h2 className="text-lg font-bold tracking-tight capitalize font-display text-slate-900">
               {activeTab === 'dashboard' && 'Dashboard Utama'}
-              {activeTab === 'tasks' && 'Tugas & Pekerjaan'}
+              {activeTab === 'tasks' && 'Tugas & Monitoring Pekerjaan'}
               {activeTab === 'fixed-assets' && 'Database Aset Tetap'}
+              {activeTab === 'fixed-assets-depreciation' && 'Depresiasi & Nilai Buku Aset'}
               {activeTab === 'fixed-assets-maintenance' && 'Pemeliharaan & Maintenance Aset'}
               {activeTab === 'fixed-assets-locations' && 'Lokasi & Peta Aset Interaktif'}
-              {activeTab === 'fixed-assets-tagging' && 'Cetak Tagging Aset'}
+              {activeTab === 'fixed-assets-tagging' && 'Cetak Tagging'}
               {activeTab === 'fixed-assets-mutation' && 'Pemindahan & Mutasi BAST'}
               {activeTab === 'fixed-assets-opname' && 'Stock Opname Aset'}
               {activeTab === 'animals' && 'Aset Satwa & Fauna'}
-              {activeTab === 'cctv' && 'Sistem CCTV Keamanan'}
-              {activeTab === 'mep' && 'Aset MEP'}
+              {activeTab === 'cctv' && 'Sistem CCTV Keamanan Kawasan'}
+              {activeTab === 'mep' && 'Aset MEP & Utilitas'}
               {activeTab === 'museum' && 'Koleksi Museum Nusantara'}
-              {activeTab === 'whitelist' && (isUserAdmin() ? 'Pengaturan Sistem' : 'Pengaturan - Aturan Kode Aset')}
+              {activeTab === 'whitelist' && (isUserAdmin() ? 'Pengaturan Akses Sistem' : 'Pengaturan - Aturan Kode Aset')}
             </h2>
           </div>
 
           {/* System Actions & Mobile Menu trigger */}
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-3">
-              {/* Tema Aplikasi Switcher */}
-              <div className="flex items-center gap-2 bg-white/60 hover:bg-white border border-slate-200/80 px-2.5 py-1.5 rounded-xl transition-all shadow-xs">
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Tema Aplikasi:</span>
+          <div className="flex items-center gap-2.5">
+            <div className="hidden sm:flex items-center gap-2.5">
+              
+              {/* Live Clock in Glass Capsule */}
+              <div className="apple-glass-pill px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs text-slate-700">
+                <Clock size={13} className="text-[#0B6B5D]" />
+                <span className="font-mono">{currentTime.toLocaleTimeString('id-ID')} WIB</span>
+              </div>
+
+              {/* Tema Aplikasi Switcher in Glass Orb Bar */}
+              <div className="flex items-center gap-2 apple-glass px-2.5 py-1.5 rounded-xl transition-all shadow-xs border border-white/70">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Tema:</span>
                 <div className="flex items-center gap-1">
                   {APP_THEMES.map(tTheme => {
                     const isActive = currentTheme.id === tTheme.id;
@@ -1335,8 +1353,8 @@ export default function App() {
                         onClick={() => handleThemeChange(tTheme.id)}
                         className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer relative ${
                           isActive 
-                            ? 'bg-white shadow-xs scale-110 z-10 border border-slate-150' 
-                            : 'opacity-60 hover:opacity-100'
+                            ? 'bg-white shadow-md scale-110 z-10 border border-slate-200' 
+                            : 'opacity-60 hover:opacity-100 hover:scale-105'
                         }`}
                         title={tTheme.name}
                       >
@@ -1355,31 +1373,42 @@ export default function App() {
               <button 
                 onClick={handleCloudBackup}
                 disabled={isBackupLoading}
-                className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 transition-all cursor-pointer disabled:opacity-60 shadow-xs"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 apple-glass-pill rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-60 shadow-2xs text-slate-700 hover:bg-white"
               >
-                <Cloud size={14} className={isBackupLoading ? "animate-bounce" : ""} />
-                <span>{isBackupLoading ? 'Mencadangkan...' : 'Backup Cloud'}</span>
+                <Cloud size={13} className={isBackupLoading ? "animate-bounce" : ""} />
+                <span>{isBackupLoading ? 'Mencadangkan...' : 'Backup'}</span>
               </button>
 
               {/* Sync Button */}
               <button 
                 onClick={handleSyncData}
                 disabled={isSyncLoading}
-                className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 transition-all cursor-pointer disabled:opacity-60 shadow-xs"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 apple-glass-pill rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-60 shadow-2xs text-slate-700 hover:bg-white"
               >
-                <RefreshCw size={14} className={isSyncLoading ? "animate-spin" : ""} />
-                <span>{isSyncLoading ? 'Sinkronisasi...' : 'Sinkron'}</span>
+                <RefreshCw size={13} className={isSyncLoading ? "animate-spin" : ""} />
+                <span>{isSyncLoading ? 'Sinkron...' : 'Sinkron'}</span>
               </button>
 
               {/* Install App / Add to Home Screen Button */}
               <button
                 type="button"
                 onClick={() => setIsAddToHomeModalOpen(true)}
-                className="flex items-center gap-2 px-3.5 py-2 border border-amber-300 rounded-xl text-xs font-bold text-amber-900 bg-gradient-to-r from-amber-100 to-amber-50 hover:from-amber-200 hover:to-amber-100 transition-all cursor-pointer shadow-xs active:scale-95"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-amber-900 bg-amber-100/90 hover:bg-amber-200/90 border border-amber-300/80 transition-all cursor-pointer shadow-xs active:scale-95"
                 title="Tambahkan Aplikasi ke Layar Utama HP (PWA)"
               >
-                <Smartphone size={15} className="text-amber-600 shrink-0" />
-                <span>Tambah ke Layar Utama</span>
+                <Smartphone size={14} className="text-amber-700 shrink-0" />
+                <span>Layar Utama</span>
+              </button>
+
+              {/* Tombol Keluar di Pojok Kanan Header Bar */}
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(true)}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-red-600 bg-red-50/90 hover:bg-red-100 border border-red-200/90 transition-all cursor-pointer shadow-xs active:scale-95 group"
+                title="Keluar dari Sistem TMII"
+              >
+                <LogOut size={13} className="text-red-500 group-hover:scale-110 transition-transform" />
+                <span>Keluar</span>
               </button>
             </div>
 
@@ -1387,17 +1416,27 @@ export default function App() {
             <button
               type="button"
               onClick={() => setIsAddToHomeModalOpen(true)}
-              className="sm:hidden p-2 text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+              className="sm:hidden p-2 text-amber-900 bg-amber-100/90 hover:bg-amber-200 border border-amber-300 rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1 text-xs font-bold"
               title="Tambah ke Layar Utama HP"
             >
-              <Smartphone size={16} className="text-amber-700" />
+              <Smartphone size={15} className="text-amber-700" />
               <span className="text-[10px]">Layar Utama</span>
+            </button>
+
+            {/* Mobile Logout quick button */}
+            <button
+              type="button"
+              onClick={() => setShowLogoutModal(true)}
+              className="sm:hidden p-2 text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center"
+              title="Keluar dari Sistem"
+            >
+              <LogOut size={15} className="text-red-500" />
             </button>
 
             {/* Mobile Menu Trigger Button (Menu Icon) */}
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-all shadow-xs cursor-pointer"
+              className="md:hidden p-2 apple-glass rounded-xl transition-all shadow-xs cursor-pointer text-slate-700 hover:bg-white border border-white/80"
               title="Menu"
             >
               <Menu size={18} />
@@ -1405,8 +1444,8 @@ export default function App() {
           </div>
         </header>
 
-        {/* 2. DYNAMIC HERO BANNER */}
-        <div className="px-6 md:px-8 pb-2">
+        {/* 2. DYNAMIC LIQUID GLASS HERO BANNER */}
+        <div className="px-4 md:px-6 pb-2">
           {(() => {
             const getThemeBadgeName = () => {
               switch (currentTheme.id) {
@@ -1421,22 +1460,22 @@ export default function App() {
 
             const getThemeGradient = () => {
               switch (currentTheme.id) {
-                case 'sumatera': return 'bg-gradient-to-r from-[#581845] via-[#900C3F] to-[#B02A1E] border-[#D4AF37]/50 shadow-lg';
-                case 'jawa': return 'bg-gradient-to-r from-[#0B1924] via-[#0F2537] to-[#1F4068] border-[#D4AF37]/50 shadow-lg';
-                case 'kalimantan': return 'bg-gradient-to-r from-[#073B31] via-[#0B5345] to-[#117A65] border-[#D4AF37]/50 shadow-lg';
-                case 'sulawesi': return 'bg-gradient-to-r from-[#6E2C00] via-[#A04000] to-[#D35400] border-[#D4AF37]/50 shadow-lg';
-                case 'papua': return 'bg-gradient-to-r from-[#341840] via-[#512E5F] to-[#7D3C98] border-[#D4AF37]/50 shadow-lg';
-                default: return 'bg-gradient-to-r from-[#0B1924] via-[#0F2537] to-[#1F4068] border-[#D4AF37]/50 shadow-lg';
+                case 'sumatera': return 'bg-gradient-to-r from-[#4A0A35]/95 via-[#800A38]/95 to-[#A8241A]/95';
+                case 'jawa': return 'bg-gradient-to-r from-[#08141F]/95 via-[#0D1F30]/95 to-[#1A385C]/95';
+                case 'kalimantan': return 'bg-gradient-to-r from-[#052E27]/95 via-[#09473B]/95 to-[#0E6655]/95';
+                case 'sulawesi': return 'bg-gradient-to-r from-[#5C2400]/95 via-[#8A3700]/95 to-[#B84900]/95';
+                case 'papua': return 'bg-gradient-to-r from-[#2C1336]/95 via-[#452752]/95 to-[#6C3483]/95';
+                default: return 'bg-gradient-to-r from-[#08141F]/95 via-[#0D1F30]/95 to-[#1A385C]/95';
               }
             };
 
             return (
               <div 
-                className={`relative overflow-hidden ${getThemeGradient()} rounded-3xl p-6 md:p-8 border flex flex-col md:flex-row items-center justify-between gap-6 text-white`}
+                className={`relative overflow-hidden ${getThemeGradient()} backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white/30 flex flex-col md:flex-row items-center justify-between gap-6 text-white shadow-xl apple-liquid-rim`}
                 id="hero-banner"
               >
                 {/* Background decorative vector motifs for cultural authenticity */}
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-4 opacity-30 pointer-events-none select-none">
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-4 opacity-25 pointer-events-none select-none">
                   {currentTheme.id === 'sumatera' && (
                     <>
                       <BatikSongket size={200} color="#F3E5AB" className="rotate-6" />
@@ -1470,11 +1509,11 @@ export default function App() {
                 </div>
 
                 <div className="relative z-10 space-y-2.5 text-center md:text-left min-w-0 flex-1">
-                  <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-md bg-black/30 text-[#F3E5AB] border border-[#D4AF37]/50 backdrop-blur-md">
+                  <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-md bg-white/10 text-[#F3E5AB] border border-white/20 backdrop-blur-md">
                     <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse"></span>
                     {getThemeBadgeName()}
                   </span>
-                  <h2 className="text-xl md:text-2xl font-black text-white tracking-tight leading-tight drop-shadow-md">
+                  <h2 className="text-xl md:text-2xl font-extrabold text-white tracking-tight leading-tight drop-shadow-md font-display">
                     Sistem Terpadu Manajemen Aset TMII
                   </h2>
                   <p className="text-xs text-[#F3E5AB]/90 font-medium max-w-2xl">
@@ -1500,36 +1539,41 @@ export default function App() {
               />
 
               {/* Drawer Content */}
+              {/* VisionOS Floating Frosted Glass Drawer Content */}
               <motion.div 
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="relative w-80 max-w-full bg-white h-full shadow-2xl flex flex-col z-10"
+                className="relative w-80 max-w-[85vw] apple-glass-panel h-full shadow-2xl flex flex-col z-10 border-l border-white/80"
               >
-                <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <TmiiLogo height="2.5rem" color={currentTheme.primaryColor} />
+                <div className="p-5 border-b flex items-center justify-between border-white/60">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl border shadow-xs bg-white/60 backdrop-blur-md border-white/80">
+                      <TmiiLogo height="2.2rem" color={currentTheme.primaryColor} />
+                    </div>
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <h1 className="text-xs font-bold tracking-wide text-slate-900 leading-tight">Sistem Manajemen Aset</h1>
-                        <span className="bg-amber-100 text-amber-800 text-[8px] font-black px-1 py-0.5 rounded shrink-0 uppercase tracking-wider scale-90">
-                          BETA
+                        <h1 className="text-xs font-extrabold tracking-tight leading-tight font-display text-slate-900">
+                          Manajemen Aset
+                        </h1>
+                        <span className="bg-amber-100 text-amber-900 text-[8px] font-black px-1.5 py-0.5 rounded-full shrink-0 uppercase tracking-wider">
+                          TMII
                         </span>
                       </div>
-                      <p className="text-[8px] font-semibold text-slate-400 mt-1 uppercase">Taman Mini Indonesia Indah</p>
+                      <p className="text-[8px] font-semibold text-slate-400 mt-0.5 uppercase">Taman Mini Indonesia Indah</p>
                     </div>
                   </div>
                   <button 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                    className="p-2 apple-glass-pill rounded-xl transition-colors cursor-pointer text-slate-600 hover:bg-white"
                   >
                     <LogOut size={16} className="rotate-180" />
                   </button>
                 </div>
 
                 {/* Theme Switcher in Mobile Drawer */}
-                <div className="p-6 pb-3 border-b border-slate-100 space-y-3">
+                <div className="p-5 pb-3 border-b space-y-3 border-white/60">
                   {/* PWA Install Button Banner in Drawer */}
                   <button
                     type="button"
@@ -1537,20 +1581,20 @@ export default function App() {
                       setIsAddToHomeModalOpen(true);
                       setIsMobileMenuOpen(false);
                     }}
-                    className="w-full p-3 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black text-xs rounded-2xl flex items-center justify-between shadow-md active:scale-98 transition-all cursor-pointer"
+                    className="w-full p-3 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black text-xs rounded-2xl flex items-center justify-between shadow-md active:scale-98 transition-all cursor-pointer apple-liquid-rim"
                   >
                     <div className="flex items-center gap-2.5">
                       <Smartphone size={18} />
                       <div className="text-left">
                         <div>Tambah ke Layar Utama</div>
-                        <div className="text-[9px] font-bold text-slate-800 opacity-80">Instal Aplikasi di HP / Tablet</div>
+                        <div className="text-[9px] font-bold text-slate-800 opacity-80">Instal PWA di HP / Tablet</div>
                       </div>
                     </div>
                     <span className="text-[10px] uppercase font-black bg-slate-950 text-amber-400 px-2 py-0.5 rounded-lg">PWA</span>
                   </button>
 
-                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Tema Aplikasi</span>
-                  <div className="bg-slate-100/70 border border-slate-200/20 px-2 py-1.5 rounded-full flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Pilih Tema Nusantara</span>
+                  <div className="apple-glass px-2 py-1.5 rounded-full flex items-center justify-between gap-1 shadow-2xs border border-white/70">
                     {APP_THEMES.map(tTheme => {
                       const isActive = currentTheme.id === tTheme.id;
                       return (
@@ -1559,16 +1603,16 @@ export default function App() {
                           onClick={() => handleThemeChange(tTheme.id)}
                           className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer relative ${
                             isActive 
-                              ? 'bg-white shadow-md scale-110 z-10 border border-slate-100' 
-                              : 'opacity-70 hover:opacity-100'
+                              ? 'bg-white shadow-md scale-110 z-10 border border-slate-200' 
+                              : 'opacity-70 hover:opacity-100 hover:scale-105'
                           }`}
                           title={tTheme.name}
                         >
-                          {tTheme.id === 'sumatera' && <BatikSongket size={18} color={isActive ? tTheme.primaryColor : '#64748B'} />}
-                          {tTheme.id === 'jawa' && <BatikKawung size={18} color={isActive ? tTheme.primaryColor : '#64748B'} />}
-                          {tTheme.id === 'kalimantan' && <BatikDayak size={18} color={isActive ? tTheme.primaryColor : '#64748B'} />}
-                          {tTheme.id === 'sulawesi' && <BatikToraja size={18} color={isActive ? tTheme.primaryColor : '#64748B'} />}
-                          {tTheme.id === 'papua' && <BatikAsmat size={18} color={isActive ? tTheme.primaryColor : '#64748B'} />}
+                          {tTheme.id === 'sumatera' && <BatikSongket size={17} color={isActive ? tTheme.primaryColor : '#64748B'} />}
+                          {tTheme.id === 'jawa' && <BatikKawung size={17} color={isActive ? tTheme.primaryColor : '#64748B'} />}
+                          {tTheme.id === 'kalimantan' && <BatikDayak size={17} color={isActive ? tTheme.primaryColor : '#64748B'} />}
+                          {tTheme.id === 'sulawesi' && <BatikToraja size={17} color={isActive ? tTheme.primaryColor : '#64748B'} />}
+                          {tTheme.id === 'papua' && <BatikAsmat size={17} color={isActive ? tTheme.primaryColor : '#64748B'} />}
                         </button>
                       );
                     })}
@@ -1579,8 +1623,8 @@ export default function App() {
                 <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
                   {/* Dashboard & Tasks */}
                   {[
-                    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-                    { id: 'tasks', label: 'Task Monitoring', icon: CheckSquare },
+                    { id: 'dashboard', label: 'Dashboard Utama', icon: LayoutDashboard },
+                    { id: 'tasks', label: 'Monitoring Tugas', icon: CheckSquare },
                   ].map(item => {
                     const isActive = activeTab === item.id;
                     const Icon = item.icon;
@@ -1591,14 +1635,14 @@ export default function App() {
                           setActiveTab(item.id as any);
                           setIsMobileMenuOpen(false);
                         }}
-                        className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer ${
+                        className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isActive 
-                            ? 'text-white' 
-                            : 'text-slate-500 hover:text-slate-950 hover:bg-slate-50'
+                            ? 'text-white shadow-md border border-white/40' 
+                            : 'text-slate-600 hover:text-slate-950 hover:bg-white/60'
                         }`}
-                        style={isActive ? { backgroundColor: currentTheme.primaryColor, boxShadow: `0 4px 12px ${currentTheme.primaryColor}20` } : {}}
+                        style={isActive ? { backgroundColor: currentTheme.primaryColor, boxShadow: `0 4px 12px ${currentTheme.primaryColor}30` } : {}}
                       >
-                        <Icon size={18} />
+                        <Icon size={17} />
                         <span>{item.label}</span>
                       </button>
                     );
@@ -1608,14 +1652,14 @@ export default function App() {
                   <div className="space-y-1">
                     <button
                       onClick={() => setIsFixedAssetsMenuOpen(!isFixedAssetsMenuOpen)}
-                      className={`w-full flex items-center justify-between px-4.5 py-3 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer ${
+                      className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                         activeTab.startsWith('fixed-assets')
-                          ? 'bg-slate-50 text-slate-900 border border-slate-100/50'
-                          : 'text-slate-500 hover:text-slate-950 hover:bg-slate-50'
+                          ? 'bg-white/80 text-slate-950 border border-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-950 hover:bg-white/60'
                       }`}
                     >
                       <div className="flex items-center gap-3.5">
-                        <Database size={18} style={activeTab.startsWith('fixed-assets') ? { color: currentTheme.primaryColor } : {}} />
+                        <Database size={17} style={activeTab.startsWith('fixed-assets') ? { color: currentTheme.primaryColor } : {}} />
                         <span>Aset Tetap</span>
                       </div>
                       <span className="text-[10px] text-slate-400 font-extrabold transform transition-transform duration-250 shrink-0" style={{ transform: isFixedAssetsMenuOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>
@@ -1624,7 +1668,7 @@ export default function App() {
                     </button>
 
                     {isFixedAssetsMenuOpen && (
-                      <div className="pl-4 space-y-1 mt-1 border-l-2 border-slate-100 ml-6">
+                      <div className="pl-3 space-y-1 mt-1 border-l-2 ml-5 border-slate-200/60">
                         {[
                           { id: 'fixed-assets', label: 'Database' },
                           { id: 'fixed-assets-depreciation', label: 'Depresiasi & Nilai Buku' },
@@ -1642,10 +1686,10 @@ export default function App() {
                                 setActiveTab(sub.id as any);
                                 setIsMobileMenuOpen(false);
                               }}
-                              className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 cursor-pointer ${
+                              className={`w-full text-left px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                                 isSubActive
                                   ? 'text-white shadow-xs'
-                                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                                  : 'text-slate-600 hover:text-slate-800 hover:bg-white/50'
                               }`}
                               style={isSubActive ? { backgroundColor: currentTheme.primaryColor } : {}}
                             >
@@ -1674,14 +1718,14 @@ export default function App() {
                           setActiveTab(item.id as any);
                           setIsMobileMenuOpen(false);
                         }}
-                        className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer ${
+                        className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                           isActive 
-                            ? 'text-white' 
-                            : 'text-slate-500 hover:text-slate-950 hover:bg-slate-50'
+                            ? 'text-white shadow-md border border-white/40' 
+                            : 'text-slate-600 hover:text-slate-950 hover:bg-white/60'
                         }`}
                         style={isActive ? { backgroundColor: currentTheme.primaryColor, boxShadow: `0 4px 12px ${currentTheme.primaryColor}20` } : {}}
                       >
-                        <Icon size={18} />
+                        <Icon size={17} />
                         <span>{item.label}</span>
                       </button>
                     );
@@ -1689,42 +1733,40 @@ export default function App() {
                 </div>
 
                 {/* Actions & Profile section at bottom of drawer */}
-                <div className="p-6 border-t border-slate-100 bg-slate-50/50 space-y-4">
+                <div className="p-5 border-t space-y-3 border-white/60 bg-white/40 backdrop-blur-md">
                   {/* Backup / Sync for Mobile */}
                   <div className="grid grid-cols-2 gap-2">
                     <button 
                       onClick={handleCloudBackup}
                       disabled={isBackupLoading}
-                      className="flex items-center justify-center gap-1.5 py-2 border border-slate-200 rounded-xl text-[10px] font-bold text-slate-600 bg-white hover:bg-slate-50 transition-all cursor-pointer disabled:opacity-60 shadow-xs"
+                      className="flex items-center justify-center gap-1.5 py-2 apple-glass-pill rounded-xl text-[11px] font-bold transition-all cursor-pointer disabled:opacity-60 shadow-2xs text-slate-700 hover:bg-white"
                     >
-                      <Cloud size={12} />
+                      <Cloud size={13} />
                       <span>Backup</span>
                     </button>
                     <button 
                       onClick={handleSyncData}
                       disabled={isSyncLoading}
-                      className="flex items-center justify-center gap-1.5 py-2 border border-slate-200 rounded-xl text-[10px] font-bold text-slate-600 bg-white hover:bg-slate-50 transition-all cursor-pointer disabled:opacity-60 shadow-xs"
+                      className="flex items-center justify-center gap-1.5 py-2 apple-glass-pill rounded-xl text-[11px] font-bold transition-all cursor-pointer disabled:opacity-60 shadow-2xs text-slate-700 hover:bg-white"
                     >
-                      <RefreshCw size={12} />
+                      <RefreshCw size={13} />
                       <span>Sinkron</span>
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 pt-1">
                     {currentUser?.photoURL ? (
-                      <img src={currentUser.photoURL} alt="Avatar" className="w-9 h-9 rounded-full border border-slate-200 shadow-xs shrink-0" referrerPolicy="no-referrer" />
+                      <img src={currentUser.photoURL} alt="User photo" className="w-9 h-9 rounded-full border border-white shadow-xs shrink-0" referrerPolicy="no-referrer" />
                     ) : (
-                      <div className="w-9 h-9 bg-slate-200 text-slate-600 flex items-center justify-center font-black rounded-full text-xs shadow-xs shrink-0">
+                      <div className="w-9 h-9 flex items-center justify-center rounded-full shadow-xs shrink-0 font-black text-xs bg-slate-200 text-slate-700">
                         {(currentUser?.displayName || 'A').charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-black text-slate-800 leading-tight truncate">
-                        {currentUser?.displayName || 'Asset TMII'}
+                      <div className="text-xs font-bold truncate leading-tight text-slate-800">
+                        {currentUser?.displayName || 'Karyawan TMII'}
                       </div>
-                      <div className="text-[9px] font-bold text-slate-400 truncate mt-0.5">
-                        {currentUser?.email}
-                      </div>
+                      <div className="text-[10px] text-slate-400 truncate font-semibold mt-0.5">{currentUser?.email}</div>
                     </div>
                   </div>
 
@@ -1733,7 +1775,7 @@ export default function App() {
                       setIsMobileMenuOpen(false);
                       setShowLogoutModal(true);
                     }}
-                    className="w-full flex items-center justify-center gap-2 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-600 border border-slate-200 font-bold py-2.5 px-4 rounded-xl text-xs transition-colors cursor-pointer shadow-xs"
+                    className="w-full flex items-center justify-center gap-2 apple-glass-pill font-bold py-2.5 px-4 rounded-xl text-xs transition-colors cursor-pointer shadow-xs hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-600"
                   >
                     <LogOut size={13} />
                     <span>Keluar Sistem</span>

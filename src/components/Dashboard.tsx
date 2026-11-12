@@ -91,53 +91,51 @@ export default function Dashboard({
     .filter(t => t.status !== 'Selesai')
     .slice(0, 5);
 
-  const isDarkMode = theme?.id === 'dark';
-
-  // Styling helpers
-  const cardBg = isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-100 text-slate-900 shadow-xs';
-  const subCardBg = isDarkMode ? 'bg-slate-800/80 border-slate-700/60' : 'bg-slate-50/80 border-slate-200/60';
-  const textMuted = isDarkMode ? 'text-slate-400' : 'text-slate-500';
-  const subHeader = isDarkMode ? 'text-slate-300' : 'text-slate-700';
+  // Apple Liquid Glass & macOS VisionOS styling helpers
+  const cardBg = 'apple-glass-card rounded-[24px] text-slate-900 shadow-sm border border-white/80';
+  const subCardBg = 'apple-glass-pill rounded-2xl border border-white/70 shadow-2xs text-slate-700';
+  const textMuted = 'text-slate-500';
+  const subHeader = 'text-slate-800 font-semibold';
 
   return (
     <div className="space-y-6 pb-12 font-sans">
       
-      {/* HEADER SECTION WITH VIEW SWITCHER */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white p-6 rounded-2xl shadow-md border border-slate-800">
-        <div className="space-y-1">
+      {/* HEADER SECTION WITH VIEW SWITCHER (Apple VisionOS Spatial Glass Pane) */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-[#0F1E2E]/95 via-[#162B40]/95 to-[#243E5E]/95 backdrop-blur-2xl text-white p-6 md:p-7 rounded-[28px] shadow-xl border border-white/25 apple-liquid-rim">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase font-bold tracking-widest bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-              Pusat Kendali Utama
+            <span className="text-[10px] uppercase font-bold tracking-widest bg-white/15 text-emerald-300 px-3 py-1 rounded-full border border-white/20 backdrop-blur-md">
+              Pusat Kendali Eksekutif TMII
             </span>
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2.5">
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5 font-display">
             Integrated Dashboard
           </h1>
-          <p className="text-xs text-slate-300 max-w-xl">
-            Sistem terintegrasi pengawasan aset, pemeliharaan satwa, CCTV, utilitas MEP, dan koleksi museum kawasan.
+          <p className="text-xs text-slate-300 max-w-xl font-medium">
+            Sistem terintegrasi pengawasan aset tetap, pemeliharaan satwa, CCTV, utilitas MEP, dan koleksi museum kawasan.
           </p>
         </div>
 
-        {/* View Variant Toggle Buttons */}
-        <div className="flex items-center bg-slate-900/80 p-1.5 rounded-xl border border-slate-700/80 shrink-0 self-start md:self-auto">
+        {/* View Variant Toggle Buttons: VisionOS Glass Pill Toggle */}
+        <div className="flex items-center bg-black/40 backdrop-blur-xl p-1.5 rounded-2xl border border-white/20 shrink-0 self-start md:self-auto shadow-inner">
           <button
             onClick={() => setDashboardView('bento')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               dashboardView === 'bento'
-                ? 'bg-emerald-500 text-slate-950 shadow-sm font-extrabold'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                ? 'bg-white text-slate-950 shadow-md font-extrabold scale-102'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
             <Layers size={14} />
-            <span>General</span>
+            <span>General Hub</span>
           </button>
 
           <button
             onClick={() => setDashboardView('analytics')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               dashboardView === 'analytics'
-                ? 'bg-emerald-500 text-slate-950 shadow-sm font-extrabold'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                ? 'bg-white text-slate-950 shadow-md font-extrabold scale-102'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
             <BarChart3 size={14} />

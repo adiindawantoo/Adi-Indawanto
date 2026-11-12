@@ -107,44 +107,61 @@ export default function BatikBackground({ themeId = 'jawa' }: BatikBackgroundPro
     switch (themeId) {
       case 'sumatera':
       case 'orchid':
-        return { color: '#900C3F', motif: 'songket' };
+        return { color: '#900C3F', motifColor: '#900C3F', motif: 'songket' };
       case 'kalimantan':
-        return { color: '#0B5345', motif: 'dayak' };
+        return { color: '#0B5345', motifColor: '#0B5345', motif: 'dayak' };
       case 'sulawesi':
       case 'terracotta':
-        return { color: '#A04000', motif: 'toraja' };
+        return { color: '#A04000', motifColor: '#A04000', motif: 'toraja' };
       case 'papua':
       case 'saffron':
-        return { color: '#512E5F', motif: 'asmat' };
+        return { color: '#512E5F', motifColor: '#512E5F', motif: 'asmat' };
       case 'jawa':
       case 'violet':
       default:
-        return { color: '#0F2537', motif: 'kawung' };
+        return { color: '#0F2537', motifColor: '#0F2537', motif: 'kawung' };
     }
   };
 
-  const { color, motif } = getColorAndMotif();
+  const { color, motifColor, motif } = getColorAndMotif();
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.30] select-none z-0">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
+      {/* Apple VisionOS Ambient Liquid Caustics & Fluid Glow Nodes tuned to regional theme */}
+      <div 
+        className="absolute -top-40 -left-40 w-[550px] h-[550px] rounded-full blur-[140px] pointer-events-none transition-all duration-700 opacity-25"
+        style={{ backgroundColor: color }}
+      />
+      <div 
+        className="absolute top-1/3 -right-40 w-[600px] h-[600px] rounded-full blur-[160px] pointer-events-none transition-all duration-700 opacity-20"
+        style={{ backgroundColor: color }}
+      />
+      <div 
+        className="absolute -bottom-48 left-1/4 w-[650px] h-[650px] rounded-full blur-[150px] pointer-events-none transition-all duration-700 opacity-18"
+        style={{ backgroundColor: color }}
+      />
+      <div className="absolute top-1/4 left-1/3 w-96 h-96 rounded-full blur-[130px] pointer-events-none bg-amber-400/10" />
+
+      {/* Glass-Etched Cultural Vector Motifs */}
+      <div className="absolute inset-0 transition-opacity duration-500 opacity-[0.24]">
       {motif === 'songket' && (
         <>
           <div className="absolute top-12 left-10 flex gap-4 rotate-6">
-            <BatikSongket size={140} color={color} />
-            <BatikSongket size={100} color={color} className="opacity-80" />
+            <BatikSongket size={140} color={motifColor} />
+            <BatikSongket size={100} color={motifColor} className="opacity-80" />
           </div>
           <div className="absolute top-1/4 right-16 flex gap-4 -rotate-12">
-            <BatikSongket size={150} color={color} />
-            <BatikSongket size={110} color={color} className="opacity-70" />
+            <BatikSongket size={150} color={motifColor} />
+            <BatikSongket size={110} color={motifColor} className="opacity-70" />
           </div>
           <div className="absolute bottom-16 left-24 flex gap-4 rotate-12">
-            <BatikSongket size={130} color={color} />
-            <BatikSongket size={90} color={color} className="opacity-80" />
+            <BatikSongket size={130} color={motifColor} />
+            <BatikSongket size={90} color={motifColor} className="opacity-80" />
           </div>
           <div className="absolute bottom-24 right-16 flex gap-4 -rotate-6">
-            <BatikSongket size={160} color={color} />
-            <BatikSongket size={100} color={color} className="opacity-80" />
-            <BatikSongket size={70} color={color} className="opacity-50 mt-3" />
+            <BatikSongket size={160} color={motifColor} />
+            <BatikSongket size={100} color={motifColor} className="opacity-80" />
+            <BatikSongket size={70} color={motifColor} className="opacity-50 mt-3" />
           </div>
         </>
       )}
@@ -152,22 +169,22 @@ export default function BatikBackground({ themeId = 'jawa' }: BatikBackgroundPro
       {motif === 'kawung' && (
         <>
           <div className="absolute top-12 left-10 flex gap-4 rotate-12">
-            <BatikKawung size={150} color={color} />
-            <BatikKawung size={110} color={color} className="opacity-80" />
-            <BatikKawung size={70} color={color} className="opacity-50 mt-4" />
+            <BatikKawung size={150} color={motifColor} />
+            <BatikKawung size={110} color={motifColor} className="opacity-80" />
+            <BatikKawung size={70} color={motifColor} className="opacity-50 mt-4" />
           </div>
           <div className="absolute top-1/3 right-1/4 flex gap-4 -rotate-12">
-            <BatikKawung size={130} color={color} />
-            <BatikKawung size={90} color={color} className="opacity-70" />
+            <BatikKawung size={130} color={motifColor} />
+            <BatikKawung size={90} color={motifColor} className="opacity-70" />
           </div>
           <div className="absolute bottom-16 left-24 flex gap-4 -rotate-6">
-            <BatikKawung size={140} color={color} />
-            <BatikKawung size={90} color={color} className="opacity-80" />
+            <BatikKawung size={140} color={motifColor} />
+            <BatikKawung size={90} color={motifColor} className="opacity-80" />
           </div>
           <div className="absolute bottom-20 right-20 flex gap-4 rotate-45">
-            <BatikKawung size={160} color={color} />
-            <BatikKawung size={100} color={color} className="opacity-80" />
-            <BatikKawung size={60} color={color} className="opacity-40" />
+            <BatikKawung size={160} color={motifColor} />
+            <BatikKawung size={100} color={motifColor} className="opacity-80" />
+            <BatikKawung size={60} color={motifColor} className="opacity-40" />
           </div>
         </>
       )}
@@ -175,20 +192,20 @@ export default function BatikBackground({ themeId = 'jawa' }: BatikBackgroundPro
       {motif === 'dayak' && (
         <>
           <div className="absolute top-12 left-10 flex gap-4 rotate-6">
-            <BatikDayak size={150} color={color} />
-            <BatikDayak size={110} color={color} className="opacity-80" />
+            <BatikDayak size={150} color={motifColor} />
+            <BatikDayak size={110} color={motifColor} className="opacity-80" />
           </div>
           <div className="absolute top-1/4 right-16 flex gap-4 -rotate-12">
-            <BatikDayak size={140} color={color} />
-            <BatikDayak size={100} color={color} className="opacity-70" />
+            <BatikDayak size={140} color={motifColor} />
+            <BatikDayak size={100} color={motifColor} className="opacity-70" />
           </div>
           <div className="absolute bottom-16 left-20 flex gap-4 rotate-12">
-            <BatikDayak size={160} color={color} />
-            <BatikDayak size={110} color={color} className="opacity-80" />
+            <BatikDayak size={160} color={motifColor} />
+            <BatikDayak size={110} color={motifColor} className="opacity-80" />
           </div>
           <div className="absolute bottom-20 right-20 flex gap-4 -rotate-6">
-            <BatikDayak size={150} color={color} />
-            <BatikDayak size={90} color={color} className="opacity-60 mt-2" />
+            <BatikDayak size={150} color={motifColor} />
+            <BatikDayak size={90} color={motifColor} className="opacity-60 mt-2" />
           </div>
         </>
       )}
@@ -196,20 +213,20 @@ export default function BatikBackground({ themeId = 'jawa' }: BatikBackgroundPro
       {motif === 'toraja' && (
         <>
           <div className="absolute top-12 left-10 flex gap-4 -rotate-6">
-            <BatikToraja size={140} color={color} />
-            <BatikToraja size={100} color={color} className="opacity-80" />
+            <BatikToraja size={140} color={motifColor} />
+            <BatikToraja size={100} color={motifColor} className="opacity-80" />
           </div>
           <div className="absolute top-1/3 right-20 flex gap-4 rotate-12">
-            <BatikToraja size={150} color={color} />
-            <BatikToraja size={100} color={color} className="opacity-70" />
+            <BatikToraja size={150} color={motifColor} />
+            <BatikToraja size={100} color={motifColor} className="opacity-70" />
           </div>
           <div className="absolute bottom-16 left-24 flex gap-4 rotate-45">
-            <BatikToraja size={130} color={color} />
-            <BatikToraja size={90} color={color} className="opacity-80" />
+            <BatikToraja size={130} color={motifColor} />
+            <BatikToraja size={90} color={motifColor} className="opacity-80" />
           </div>
           <div className="absolute bottom-20 right-24 flex gap-4 -rotate-12">
-            <BatikToraja size={160} color={color} />
-            <BatikToraja size={110} color={color} className="opacity-80" />
+            <BatikToraja size={160} color={motifColor} />
+            <BatikToraja size={110} color={motifColor} className="opacity-80" />
           </div>
         </>
       )}
@@ -217,23 +234,24 @@ export default function BatikBackground({ themeId = 'jawa' }: BatikBackgroundPro
       {motif === 'asmat' && (
         <>
           <div className="absolute top-12 left-10 flex gap-4 rotate-12">
-            <BatikAsmat size={150} color={color} />
-            <BatikAsmat size={110} color={color} className="opacity-80" />
+            <BatikAsmat size={150} color={motifColor} />
+            <BatikAsmat size={110} color={motifColor} className="opacity-80" />
           </div>
           <div className="absolute top-1/4 right-16 flex gap-4 -rotate-12">
-            <BatikAsmat size={140} color={color} />
-            <BatikAsmat size={100} color={color} className="opacity-70" />
+            <BatikAsmat size={140} color={motifColor} />
+            <BatikAsmat size={100} color={motifColor} className="opacity-70" />
           </div>
           <div className="absolute bottom-16 left-24 flex gap-4 rotate-6">
-            <BatikAsmat size={160} color={color} />
-            <BatikAsmat size={100} color={color} className="opacity-80" />
+            <BatikAsmat size={160} color={motifColor} />
+            <BatikAsmat size={100} color={motifColor} className="opacity-80" />
           </div>
           <div className="absolute bottom-20 right-20 flex gap-4 -rotate-12">
-            <BatikAsmat size={150} color={color} />
-            <BatikAsmat size={90} color={color} className="opacity-60" />
+            <BatikAsmat size={150} color={motifColor} />
+            <BatikAsmat size={90} color={motifColor} className="opacity-60" />
           </div>
         </>
       )}
+      </div>
     </div>
   );
 }
