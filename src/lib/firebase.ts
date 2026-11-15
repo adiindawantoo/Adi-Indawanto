@@ -13,7 +13,9 @@ import firebaseConfig from '../../firebase-applet-config.json';
 // Inisialisasi Firebase
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId); /* CRITICAL: Required for custom database ID */
+export const db = (firebaseConfig as Record<string, any>).firestoreDatabaseId 
+  ? getFirestore(app, (firebaseConfig as Record<string, any>).firestoreDatabaseId) 
+  : getFirestore(app);
 
 const provider = new GoogleAuthProvider();
 // Request Google Drive and User profile scopes

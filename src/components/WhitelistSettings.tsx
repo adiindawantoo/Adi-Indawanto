@@ -30,7 +30,8 @@ import {
   Sparkles,
   Download,
   FileSpreadsheet,
-  ChevronDown
+  ChevronDown,
+  Smartphone
 } from 'lucide-react';
 import { AllowedEmail, ConfiguredLocation, ConfiguredCategory, TmiiRegionName, DEFAULT_ASSET_LOCATIONS, DEFAULT_ASSET_CATEGORIES, LOCATION_AREA_CATEGORIES, FixedAsset, AppTheme } from '../types';
 import { 
@@ -72,6 +73,7 @@ interface WhitelistSettingsProps {
   fixedAssets?: FixedAsset[];
   theme?: AppTheme;
   isAdmin?: boolean;
+  onOpenPwaModal?: () => void;
 }
 
 export default function WhitelistSettings({
@@ -93,7 +95,8 @@ export default function WhitelistSettings({
   stats = { tasks: 0, fixedAssets: 0, animals: 0, cctvs: 0, meps: 0, museumCollections: 0 },
   fixedAssets = [],
   theme,
-  isAdmin = false
+  isAdmin = false,
+  onOpenPwaModal
 }: WhitelistSettingsProps) {
   // Navigation active setting section: defaults to 'codification' for non-admin, or 'categories' for admin
   const [activeTab, setActiveTab] = useState<'codification' | 'categories' | 'locations' | 'whitelist' | 'database'>(
@@ -694,6 +697,39 @@ export default function WhitelistSettings({
           </div>
         )}
       </div>
+
+      {/* PWA Add To Home Screen Card inside Pengaturan */}
+      {onOpenPwaModal && (
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-50 via-amber-50/80 to-white border border-amber-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 shadow-sm">
+              <Smartphone size={22} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm font-extrabold text-slate-900">
+                  Tambahkan Aplikasi ke Layar Utama (PWA)
+                </h2>
+                <span className="text-[9px] font-black uppercase tracking-wider bg-slate-900 text-amber-400 px-2 py-0.5 rounded-md">
+                  PWA
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 font-medium mt-0.5">
+                Instal aplikasi TMII Asset Management di layar utama HP Android, iPhone, atau Desktop untuk akses cepat seperti aplikasi native.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onOpenPwaModal}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
+          >
+            <Smartphone size={15} />
+            <span>Pasang ke Layar Utama</span>
+          </button>
+        </div>
+      )}
 
       {/* -1. ATURAN KODEFIKASI ASET TAB */}
       {effectiveTab === 'codification' && (

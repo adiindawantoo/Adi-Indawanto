@@ -44,7 +44,6 @@ import {
   Camera, 
   Settings2, 
   BookOpen, 
-  Users, 
   LogOut, 
   User as UserIcon,
   Clock,
@@ -53,10 +52,8 @@ import {
   Cloud,
   RefreshCw,
   Menu,
-  Smartphone,
   AlertTriangle,
   ChevronRight,
-  FileCode2,
   SlidersHorizontal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -1260,8 +1257,7 @@ export default function App() {
             { id: 'animals', label: 'Aset Satwa', icon: Heart },
             { id: 'cctv', label: 'CCTV Keamanan', icon: Camera },
             { id: 'mep', label: 'Aset MEP', icon: Settings2 },
-            { id: 'museum', label: 'Koleksi Museum', icon: BookOpen },
-            { id: 'whitelist', label: 'Pengaturan', icon: isUserAdmin() ? Users : FileCode2 }
+            { id: 'museum', label: 'Koleksi Museum', icon: BookOpen }
           ].map(item => {
             const isActive = activeTab === item.id;
             const Icon = item.icon;
@@ -1389,15 +1385,20 @@ export default function App() {
                 <span>{isSyncLoading ? 'Sinkron...' : 'Sinkron'}</span>
               </button>
 
-              {/* Install App / Add to Home Screen Button */}
+              {/* Tombol Pengaturan di Samping Kiri Tombol Keluar */}
               <button
                 type="button"
-                onClick={() => setIsAddToHomeModalOpen(true)}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-amber-900 bg-amber-100/90 hover:bg-amber-200/90 border border-amber-300/80 transition-all cursor-pointer shadow-xs active:scale-95"
-                title="Tambahkan Aplikasi ke Layar Utama HP (PWA)"
+                onClick={() => setActiveTab('whitelist')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
+                  activeTab === 'whitelist'
+                    ? 'text-white shadow-md border border-white/40'
+                    : 'apple-glass-pill text-slate-700 hover:bg-white'
+                }`}
+                style={activeTab === 'whitelist' ? { backgroundColor: currentTheme.primaryColor } : {}}
+                title={isUserAdmin() ? 'Pengaturan Sistem & Database' : 'Pengaturan - Aturan Kode Aset & PWA'}
               >
-                <Smartphone size={14} className="text-amber-700 shrink-0" />
-                <span>Layar Utama</span>
+                <SlidersHorizontal size={13} />
+                <span>Pengaturan</span>
               </button>
 
               {/* Tombol Keluar di Pojok Kanan Header Bar */}
@@ -1412,15 +1413,19 @@ export default function App() {
               </button>
             </div>
 
-            {/* Mobile Install App quick button next to Menu */}
+            {/* Mobile Pengaturan quick button next to Logout */}
             <button
               type="button"
-              onClick={() => setIsAddToHomeModalOpen(true)}
-              className="sm:hidden p-2 text-amber-900 bg-amber-100/90 hover:bg-amber-200 border border-amber-300 rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1 text-xs font-bold"
-              title="Tambah ke Layar Utama HP"
+              onClick={() => setActiveTab('whitelist')}
+              className={`sm:hidden p-2 rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center border ${
+                activeTab === 'whitelist'
+                  ? 'text-white border-white/40 shadow-md'
+                  : 'apple-glass text-slate-700 hover:bg-white border-white/80'
+              }`}
+              style={activeTab === 'whitelist' ? { backgroundColor: currentTheme.primaryColor } : {}}
+              title="Pengaturan"
             >
-              <Smartphone size={15} className="text-amber-700" />
-              <span className="text-[10px]">Layar Utama</span>
+              <SlidersHorizontal size={15} />
             </button>
 
             {/* Mobile Logout quick button */}
@@ -1574,25 +1579,6 @@ export default function App() {
 
                 {/* Theme Switcher in Mobile Drawer */}
                 <div className="p-5 pb-3 border-b space-y-3 border-white/60">
-                  {/* PWA Install Button Banner in Drawer */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsAddToHomeModalOpen(true);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full p-3 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black text-xs rounded-2xl flex items-center justify-between shadow-md active:scale-98 transition-all cursor-pointer apple-liquid-rim"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Smartphone size={18} />
-                      <div className="text-left">
-                        <div>Tambah ke Layar Utama</div>
-                        <div className="text-[9px] font-bold text-slate-800 opacity-80">Instal PWA di HP / Tablet</div>
-                      </div>
-                    </div>
-                    <span className="text-[10px] uppercase font-black bg-slate-950 text-amber-400 px-2 py-0.5 rounded-lg">PWA</span>
-                  </button>
-
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Pilih Tema Nusantara</span>
                   <div className="apple-glass px-2 py-1.5 rounded-full flex items-center justify-between gap-1 shadow-2xs border border-white/70">
                     {APP_THEMES.map(tTheme => {
@@ -1706,8 +1692,7 @@ export default function App() {
                     { id: 'animals', label: 'Aset Satwa', icon: Heart },
                     { id: 'cctv', label: 'CCTV Keamanan', icon: Camera },
                     { id: 'mep', label: 'Aset MEP', icon: Settings2 },
-                    { id: 'museum', label: 'Koleksi Museum', icon: BookOpen },
-                    { id: 'whitelist', label: 'Pengaturan', icon: isUserAdmin() ? Users : FileCode2 }
+                    { id: 'museum', label: 'Koleksi Museum', icon: BookOpen }
                   ].map(item => {
                     const isActive = activeTab === item.id;
                     const Icon = item.icon;
@@ -1975,6 +1960,7 @@ export default function App() {
                   fixedAssets={fixedAssets}
                   theme={currentTheme}
                   isAdmin={isUserAdmin()}
+                  onOpenPwaModal={() => setIsAddToHomeModalOpen(true)}
                 />
               )}
             </motion.div>
