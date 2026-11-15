@@ -1424,6 +1424,14 @@ export default function WhitelistSettings({
                 Email administrator utama <span className="underline font-bold">adi.indawanto@gmail.com</span> terproteksi penuh secara bawaan dan tidak dapat dihapus.
               </div>
             </div>
+
+            <div className="border border-blue-200 bg-blue-50/70 p-4 rounded-2xl flex items-start gap-3 text-xs text-blue-900 leading-relaxed font-medium">
+              <Info size={18} className="shrink-0 mt-0.5 text-blue-600" />
+              <div>
+                <span className="font-extrabold block text-blue-950 mb-0.5">Catatan Google Sign-In (Error 403 / Testing Mode)</span>
+                Agar setiap email yang ditambahkan di sini otomatis bisa login tanpa mendaftar ulang di Google Cloud Console, pastikan status <strong>OAuth Consent Screen</strong> proyek di Google Cloud Console sudah diubah dari <em>Testing</em> menjadi <strong>In production</strong> (<em>Publish App</em>).
+              </div>
+            </div>
           </div>
 
           {/* Right Whitelisted Emails List */}

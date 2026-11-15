@@ -220,7 +220,7 @@ export default function App() {
   }, []);
 
   const handleAuthSuccess = async (user: User, token: string) => {
-    const userEmail = user.email?.toLowerCase();
+    const userEmail = (user.email || '').toLowerCase().trim();
     
     // Clean up any existing whitelist subscription first
     if (whitelistUnsubscribeRef.current) {
@@ -262,7 +262,9 @@ export default function App() {
       }
 
       const isOwner = userEmail === 'adi.indawanto@gmail.com';
-      const isAllowed = emailList.some(e => e.email.toLowerCase() === userEmail);
+      const isAllowed = emailList.some(
+        e => (e.email || e.id || '').toLowerCase().trim() === userEmail
+      );
 
       if (isOwner || isAllowed) {
         setCurrentUser(user);

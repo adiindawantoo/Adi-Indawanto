@@ -24,6 +24,7 @@ import {
   Phone,
   Globe
 } from 'lucide-react';
+import { getCachedDriveToken, requestGoogleDriveAccess } from '../lib/firebase';
 import { UserTask, AppTheme } from '../types';
 import { exportToExcel } from '../lib/excel';
 import ImportDataPanel from './ImportDataPanel';
@@ -147,6 +148,11 @@ export default function TaskManagement({
 
     setUploadingFile(true);
     try {
+      const driveToken = getCachedDriveToken() || (await requestGoogleDriveAccess());
+      if (!driveToken) {
+        throw new Error('Izin akses Google Drive belum diberikan. Anda juga dapat menempelkan tautan Google Drive pada Opsi B.');
+      }
+
       const metadata = {
         name: file.name,
         mimeType: file.type,
@@ -159,7 +165,7 @@ export default function TaskManagement({
       const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${googleAccessToken}`,
+          Authorization: `Bearer ${driveToken}`,
         },
         body: form,
       });
@@ -175,7 +181,7 @@ export default function TaskManagement({
         await fetch(`https://www.googleapis.com/drive/v3/files/${resData.id}/permissions`, {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${googleAccessToken}`,
+            Authorization: `Bearer ${driveToken}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({

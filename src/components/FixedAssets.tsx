@@ -43,7 +43,7 @@ import {
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import { db } from '../lib/firebase';
+import { db, getCachedDriveToken, requestGoogleDriveAccess } from '../lib/firebase';
 import { collection, onSnapshot, query } from 'firebase/firestore';
 import { FixedAsset, AppTheme, ConfiguredLocation, ConfiguredCategory, DEFAULT_ASSET_LOCATIONS, DEFAULT_ASSET_CATEGORIES, TmiiRegionName, AssetMaintenance, AssetTransfer } from '../types';
 import { exportToExcel } from '../lib/excel';
@@ -419,6 +419,11 @@ export default function FixedAssets({
 
     setUploadingFile(true);
     try {
+      const driveToken = getCachedDriveToken() || (await requestGoogleDriveAccess());
+      if (!driveToken) {
+        throw new Error('Izin akses Google Drive belum diberikan. Anda juga dapat menempelkan tautan Google Drive pada Opsi B.');
+      }
+
       const metadata = {
         name: file.name,
         mimeType: file.type,
@@ -431,7 +436,7 @@ export default function FixedAssets({
       const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${googleAccessToken}`,
+          Authorization: `Bearer ${driveToken}`,
         },
         body: form,
       });
@@ -447,7 +452,7 @@ export default function FixedAssets({
         await fetch(`https://www.googleapis.com/drive/v3/files/${resData.id}/permissions`, {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${googleAccessToken}`,
+            Authorization: `Bearer ${driveToken}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({

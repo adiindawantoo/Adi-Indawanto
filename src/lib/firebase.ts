@@ -27,10 +27,50 @@ export const db = (() => {
 })();
 
 const provider = new GoogleAuthProvider();
-// Request Google Drive and User profile scopes
-provider.addScope('https://www.googleapis.com/auth/drive.file');
+// Request only basic non-sensitive identity scopes on login so whitelisted users aren't blocked by sensitive-scope verification
 provider.addScope('https://www.googleapis.com/auth/userinfo.email');
 provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+
+const DRIVE_TOKEN_STORAGE_KEY = 'tmii_google_drive_token';
+
+export const getCachedDriveToken = (): string | null => {
+  try {
+    return sessionStorage.getItem(DRIVE_TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const setCachedDriveToken = (token: string | null) => {
+  try {
+    if (token) {
+      sessionStorage.setItem(DRIVE_TOKEN_STORAGE_KEY, token);
+    } else {
+      sessionStorage.removeItem(DRIVE_TOKEN_STORAGE_KEY);
+    }
+  } catch {
+    // ignore
+  }
+};
+
+export const requestGoogleDriveAccess = async (): Promise<string | null> => {
+  const cached = getCachedDriveToken();
+  if (cached) return cached;
+
+  const driveProvider = new GoogleAuthProvider();
+  driveProvider.addScope('https://www.googleapis.com/auth/drive.file');
+  if (auth.currentUser?.email) {
+    driveProvider.setCustomParameters({ login_hint: auth.currentUser.email });
+  }
+
+  const result = await signInWithPopup(auth, driveProvider);
+  const credential = GoogleAuthProvider.credentialFromResult(result);
+  const accessToken = credential?.accessToken || null;
+  if (accessToken) {
+    setCachedDriveToken(accessToken);
+  }
+  return accessToken;
+};
 
 let isSigningIn = false;
 
@@ -126,6 +166,7 @@ export const getAccessToken = async (): Promise<string | null> => {
 export const logout = async () => {
   await signOut(auth);
   setCachedToken(null);
+  setCachedDriveToken(null);
 };
 
 export enum OperationType {
