@@ -7,15 +7,24 @@ import {
   User, 
   signOut 
 } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // Inisialisasi Firebase
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = (firebaseConfig as Record<string, any>).firestoreDatabaseId 
-  ? getFirestore(app, (firebaseConfig as Record<string, any>).firestoreDatabaseId) 
-  : getFirestore(app);
+const databaseId = (firebaseConfig as Record<string, any>).firestoreDatabaseId || undefined;
+export const db = (() => {
+  try {
+    return initializeFirestore(
+      app,
+      { experimentalAutoDetectLongPolling: true },
+      databaseId
+    );
+  } catch {
+    return databaseId ? getFirestore(app, databaseId) : getFirestore(app);
+  }
+})();
 
 const provider = new GoogleAuthProvider();
 // Request Google Drive and User profile scopes
