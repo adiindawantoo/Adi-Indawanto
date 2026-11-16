@@ -98,31 +98,31 @@ export default function Dashboard({
   const subHeader = 'text-slate-800 font-semibold';
 
   return (
-    <div className="space-y-6 pb-12 font-sans">
+    <div className="space-y-4 md:space-y-6 pb-4 md:pb-12 font-sans">
       
       {/* HEADER SECTION WITH VIEW SWITCHER (Apple VisionOS Spatial Glass Pane) */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-[#0F1E2E]/95 via-[#162B40]/95 to-[#243E5E]/95 backdrop-blur-2xl text-white p-6 md:p-7 rounded-[28px] shadow-xl border border-white/25 apple-liquid-rim">
-        <div className="space-y-1.5">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 bg-gradient-to-r from-[#0F1E2E]/95 via-[#162B40]/95 to-[#243E5E]/95 backdrop-blur-2xl text-white p-4 md:px-7 md:pb-7 md:pt-[24px] rounded-2xl md:rounded-[28px] shadow-xl border border-white/25 apple-liquid-rim">
+        <div className="space-y-1 md:space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase font-bold tracking-widest bg-white/15 text-emerald-300 px-3 py-1 rounded-full border border-white/20 backdrop-blur-md">
+            <span className="text-[9px] md:text-[10px] uppercase font-bold tracking-widest bg-white/15 text-emerald-300 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full border border-white/20 backdrop-blur-md">
               Pusat Kendali Eksekutif TMII
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5 font-display">
+          <h1 className="text-lg md:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5 font-display">
             Integrated Dashboard
           </h1>
-          <p className="text-xs text-slate-300 max-w-xl font-medium">
+          <p className="text-[11px] md:text-xs text-slate-300 max-w-xl font-medium leading-relaxed">
             Sistem terintegrasi pengawasan aset tetap, pemeliharaan satwa, CCTV, utilitas MEP, dan koleksi museum kawasan.
           </p>
         </div>
 
         {/* View Variant Toggle Buttons: VisionOS Glass Pill Toggle */}
-        <div className="flex items-center bg-black/40 backdrop-blur-xl p-1.5 rounded-2xl border border-white/20 shrink-0 self-start md:self-auto shadow-inner">
+        <div className="grid grid-cols-2 md:flex items-center bg-black/40 backdrop-blur-xl p-1 md:p-1.5 rounded-xl md:rounded-2xl border border-white/20 shrink-0 w-full md:w-auto shadow-inner">
           <button
             onClick={() => setDashboardView('bento')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl text-[11px] md:text-xs font-bold transition-all flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer whitespace-nowrap ${
               dashboardView === 'bento'
-                ? 'bg-white text-slate-950 shadow-md font-extrabold scale-102'
+                ? 'bg-white text-slate-950 shadow-md font-extrabold md:scale-102'
                 : 'text-slate-300 hover:text-white'
             }`}
           >
@@ -132,9 +132,9 @@ export default function Dashboard({
 
           <button
             onClick={() => setDashboardView('analytics')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl text-[11px] md:text-xs font-bold transition-all flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer whitespace-nowrap ${
               dashboardView === 'analytics'
-                ? 'bg-white text-slate-950 shadow-md font-extrabold scale-102'
+                ? 'bg-white text-slate-950 shadow-md font-extrabold md:scale-102'
                 : 'text-slate-300 hover:text-white'
             }`}
           >
@@ -149,147 +149,147 @@ export default function Dashboard({
         <motion.div 
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
+          className="space-y-4 md:space-y-6"
         >
           {/* TOP SUMMARY CARDS (DOMAIN OVERVIEW) */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 md:gap-3">
             
             {/* Task Card */}
             <div 
               onClick={() => setActiveTab('tasks')}
-              className={`${cardBg} p-4 rounded-2xl border hover:border-emerald-500/50 transition-all cursor-pointer group flex flex-col justify-between`}
+              className={`${cardBg} p-3 md:p-4 rounded-xl md:rounded-2xl border hover:border-emerald-500/50 transition-all cursor-pointer group flex flex-col justify-between`}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5 md:mb-2">
                 <span className={`text-[10px] font-bold uppercase tracking-wider ${textMuted}`}>Tugas</span>
                 <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 group-hover:scale-110 transition-transform">
                   <ClipboardList size={16} />
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-black tracking-tight">{pendingTasks}</div>
-                <div className={`text-[11px] font-medium ${textMuted} mt-0.5`}>Pending dari {tasks.length}</div>
+                <div className="text-xl md:text-2xl font-black tracking-tight tabular-nums">{pendingTasks}</div>
+                <div className={`text-[10px] md:text-[11px] font-medium ${textMuted} mt-0.5`}>Pending dari {tasks.length}</div>
               </div>
-              <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px]">
+              <div className="mt-2 md:mt-3 pt-1.5 md:pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px]">
                 <span className={textMuted}>Selesai</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">{taskProgress}%</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">{taskProgress}%</span>
               </div>
             </div>
 
             {/* Fixed Asset Card */}
             <div 
               onClick={() => setActiveTab('fixed-assets')}
-              className={`${cardBg} p-4 rounded-2xl border hover:border-blue-500/50 transition-all cursor-pointer group flex flex-col justify-between`}
+              className={`${cardBg} p-3 md:p-4 rounded-xl md:rounded-2xl border hover:border-blue-500/50 transition-all cursor-pointer group flex flex-col justify-between`}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5 md:mb-2">
                 <span className={`text-[10px] font-bold uppercase tracking-wider ${textMuted}`}>Aset Tetap</span>
                 <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 group-hover:scale-110 transition-transform">
                   <Database size={16} />
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-black tracking-tight">{goodConditionAssets}</div>
-                <div className={`text-[11px] font-medium ${textMuted} mt-0.5`}>Kondisi Baik dari {fixedAssets.length}</div>
+                <div className="text-xl md:text-2xl font-black tracking-tight tabular-nums">{goodConditionAssets}</div>
+                <div className={`text-[10px] md:text-[11px] font-medium ${textMuted} mt-0.5`}>Kondisi Baik dari {fixedAssets.length}</div>
               </div>
-              <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px]">
+              <div className="mt-2 md:mt-3 pt-1.5 md:pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px]">
                 <span className={textMuted}>Kondisi Baik</span>
-                <span className="font-bold text-blue-600 dark:text-blue-400">{assetProgress}%</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400 tabular-nums">{assetProgress}%</span>
               </div>
             </div>
 
             {/* Animal Card */}
             <div 
               onClick={() => setActiveTab('animals')}
-              className={`${cardBg} p-4 rounded-2xl border hover:border-rose-500/50 transition-all cursor-pointer group flex flex-col justify-between`}
+              className={`${cardBg} p-3 md:p-4 rounded-xl md:rounded-2xl border hover:border-rose-500/50 transition-all cursor-pointer group flex flex-col justify-between`}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5 md:mb-2">
                 <span className={`text-[10px] font-bold uppercase tracking-wider ${textMuted}`}>Satwa</span>
                 <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400 group-hover:scale-110 transition-transform">
                   <Heart size={16} />
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-black tracking-tight">{healthyAnimals}</div>
-                <div className={`text-[11px] font-medium ${textMuted} mt-0.5`}>Sehat dari {animals.length} ekor</div>
+                <div className="text-xl md:text-2xl font-black tracking-tight tabular-nums">{healthyAnimals}</div>
+                <div className={`text-[10px] md:text-[11px] font-medium ${textMuted} mt-0.5`}>Sehat dari {animals.length} ekor</div>
               </div>
-              <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px]">
+              <div className="mt-2 md:mt-3 pt-1.5 md:pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px]">
                 <span className={textMuted}>Kesehatan</span>
-                <span className="font-bold text-rose-600 dark:text-rose-400">{animalProgress}%</span>
+                <span className="font-bold text-rose-600 dark:text-rose-400 tabular-nums">{animalProgress}%</span>
               </div>
             </div>
 
             {/* CCTV Card */}
             <div 
               onClick={() => setActiveTab('cctv')}
-              className={`${cardBg} p-4 rounded-2xl border hover:border-amber-500/50 transition-all cursor-pointer group flex flex-col justify-between`}
+              className={`${cardBg} p-3 md:p-4 rounded-xl md:rounded-2xl border hover:border-amber-500/50 transition-all cursor-pointer group flex flex-col justify-between`}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5 md:mb-2">
                 <span className={`text-[10px] font-bold uppercase tracking-wider ${textMuted}`}>CCTV Live</span>
                 <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400 group-hover:scale-110 transition-transform">
                   <Camera size={16} />
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-black tracking-tight">{activeCctvs}</div>
-                <div className={`text-[11px] font-medium ${textMuted} mt-0.5`}>Aktif dari {cctvs.length} titik</div>
+                <div className="text-xl md:text-2xl font-black tracking-tight tabular-nums">{activeCctvs}</div>
+                <div className={`text-[10px] md:text-[11px] font-medium ${textMuted} mt-0.5`}>Aktif dari {cctvs.length} titik</div>
               </div>
-              <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px]">
+              <div className="mt-2 md:mt-3 pt-1.5 md:pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px]">
                 <span className={textMuted}>Sistem Online</span>
-                <span className="font-bold text-amber-600 dark:text-amber-400">{cctvProgress}%</span>
+                <span className="font-bold text-amber-600 dark:text-amber-400 tabular-nums">{cctvProgress}%</span>
               </div>
             </div>
 
             {/* MEP Card */}
             <div 
               onClick={() => setActiveTab('mep')}
-              className={`${cardBg} p-4 rounded-2xl border hover:border-violet-500/50 transition-all cursor-pointer group flex flex-col justify-between`}
+              className={`${cardBg} p-3 md:p-4 rounded-xl md:rounded-2xl border hover:border-violet-500/50 transition-all cursor-pointer group flex flex-col justify-between`}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5 md:mb-2">
                 <span className={`text-[10px] font-bold uppercase tracking-wider ${textMuted}`}>Utilitas MEP</span>
                 <div className="p-1.5 rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400 group-hover:scale-110 transition-transform">
                   <Settings2 size={16} />
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-black tracking-tight">{normalMeps}</div>
-                <div className={`text-[11px] font-medium ${textMuted} mt-0.5`}>Normal dari {meps.length} unit</div>
+                <div className="text-xl md:text-2xl font-black tracking-tight tabular-nums">{normalMeps}</div>
+                <div className={`text-[10px] md:text-[11px] font-medium ${textMuted} mt-0.5`}>Normal dari {meps.length} unit</div>
               </div>
-              <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px]">
+              <div className="mt-2 md:mt-3 pt-1.5 md:pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px]">
                 <span className={textMuted}>Keandalan</span>
-                <span className="font-bold text-violet-600 dark:text-violet-400">{mepProgress}%</span>
+                <span className="font-bold text-violet-600 dark:text-violet-400 tabular-nums">{mepProgress}%</span>
               </div>
             </div>
 
             {/* Museum Card */}
             <div 
               onClick={() => setActiveTab('museum')}
-              className={`${cardBg} p-4 rounded-2xl border hover:border-cyan-500/50 transition-all cursor-pointer group flex flex-col justify-between`}
+              className={`${cardBg} p-3 md:p-4 rounded-xl md:rounded-2xl border hover:border-cyan-500/50 transition-all cursor-pointer group flex flex-col justify-between`}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1.5 md:mb-2">
                 <span className={`text-[10px] font-bold uppercase tracking-wider ${textMuted}`}>Museum</span>
                 <div className="p-1.5 rounded-lg bg-cyan-50 text-cyan-600 dark:bg-cyan-950/50 dark:text-cyan-400 group-hover:scale-110 transition-transform">
                   <Archive size={16} />
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-black tracking-tight">{museumCollections.length}</div>
-                <div className={`text-[11px] font-medium ${textMuted} mt-0.5`}>{intactMuseum} koleksi utuh</div>
+                <div className="text-xl md:text-2xl font-black tracking-tight tabular-nums">{museumCollections.length}</div>
+                <div className={`text-[10px] md:text-[11px] font-medium ${textMuted} mt-0.5`}>{intactMuseum} koleksi utuh</div>
               </div>
-              <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px]">
+              <div className="mt-2 md:mt-3 pt-1.5 md:pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px]">
                 <span className={textMuted}>Terawat</span>
-                <span className="font-bold text-cyan-600 dark:text-cyan-400">{museumProgress}%</span>
+                <span className="font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">{museumProgress}%</span>
               </div>
             </div>
 
           </div>
 
           {/* BENTO GRID CONTENT SECTION */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
             
             {/* MAIN LEFT COLUMN (8 COLS) */}
-            <div className="lg:col-span-8 space-y-6">
+            <div className="lg:col-span-8 space-y-4 md:space-y-6">
               
               {/* URGENT ATENTION / ALERTS HUB */}
-              <div className={`${cardBg} p-5 rounded-2xl border`}>
+              <div className={`${cardBg} p-4 md:p-5 rounded-xl md:rounded-2xl border`}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-500">
@@ -375,7 +375,7 @@ export default function Dashboard({
               </div>
 
               {/* RECENT TASKS & MAINTENANCE FEED */}
-              <div className={`${cardBg} p-5 rounded-2xl border`}>
+              <div className={`${cardBg} p-4 md:p-5 rounded-xl md:rounded-2xl border`}>
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="font-black text-sm tracking-tight">Status Penugasan & Pemeliharaan Terbaru</h3>
@@ -431,10 +431,10 @@ export default function Dashboard({
             </div>
 
             {/* RIGHT SIDEBAR COLUMN (4 COLS) */}
-            <div className="lg:col-span-4 space-y-6">
+            <div className="lg:col-span-4 space-y-4 md:space-y-6">
               
               {/* QUICK FEATURE LAUNCHPAD */}
-              <div className={`${cardBg} p-5 rounded-2xl border space-y-3`}>
+              <div className={`${cardBg} p-4 md:p-5 rounded-xl md:rounded-2xl border space-y-3`}>
                 <h3 className="font-black text-sm tracking-tight flex items-center gap-2">
                   <Zap size={16} className="text-amber-500" />
                   <span>Akses Modul Aset Tetap</span>
@@ -508,7 +508,7 @@ export default function Dashboard({
               </div>
 
               {/* OVERALL READINESS INDEX CARD */}
-              <div className={`${cardBg} p-5 rounded-2xl border space-y-4`}>
+              <div className={`${cardBg} p-4 md:p-5 rounded-xl md:rounded-2xl border space-y-4`}>
                 <div className="flex items-center justify-between">
                   <h3 className="font-black text-sm tracking-tight">Indeks Kesiapan Kawasan</h3>
                   <ShieldCheck size={18} className="text-emerald-500" />
@@ -555,12 +555,12 @@ export default function Dashboard({
         <motion.div 
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
+          className="space-y-4 md:space-y-6"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             
             {/* Condition Distribution Chart Card */}
-            <div className={`${cardBg} p-6 rounded-2xl border space-y-4`}>
+            <div className={`${cardBg} p-4 md:p-6 rounded-xl md:rounded-2xl border space-y-4`}>
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-black text-sm tracking-tight">Distribusi Kondisi Aset Tetap</h3>
@@ -628,7 +628,7 @@ export default function Dashboard({
             </div>
 
             {/* Health & Infrastructure Health Matrix */}
-            <div className={`${cardBg} p-6 rounded-2xl border space-y-4`}>
+            <div className={`${cardBg} p-4 md:p-6 rounded-xl md:rounded-2xl border space-y-4`}>
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-black text-sm tracking-tight">Kesehatan Satwa & Infrastruktur MEP</h3>

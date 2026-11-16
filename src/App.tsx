@@ -1290,22 +1290,44 @@ export default function App() {
         
         {/* FLOATING GLASS HEADER BAR */}
         <header 
-          className="mx-4 md:mx-6 mt-3.5 mb-2 px-5 py-3.5 apple-glass rounded-2xl flex items-center justify-between z-20 shadow-md border border-white/80" 
+          className="mx-3 md:mx-6 mt-2.5 md:mt-3.5 mb-1.5 md:mb-2 px-3 md:px-5 py-2 md:py-3.5 apple-glass rounded-xl md:rounded-2xl flex items-center justify-between gap-2 z-20 shadow-md border border-white/80" 
           id="main-header"
         >
-          {/* Brand/Identity for Mobile only (hidden on Desktop since sidebar has it) */}
-          <div className="flex items-center gap-3 md:hidden">
-            <TmiiLogo height="2.8rem" color={currentTheme.primaryColor} />
-            <div>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h1 className="text-xs font-bold tracking-tight leading-tight block font-display text-slate-900">
-                  Manajemen Aset
-                </h1>
-                <span className="bg-amber-100 text-amber-900 text-[8px] font-black px-1.5 py-0.5 rounded-full shrink-0 uppercase tracking-wider">
-                  TMII
-                </span>
+          {/* Mobile Left Slot: Prominent Menu Trigger + Compact Brand */}
+          <div className="flex items-center gap-2 min-w-0 flex-1 md:hidden">
+            <button 
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 min-h-[40px] rounded-xl text-xs font-extrabold text-white shadow-sm active:scale-95 transition-all cursor-pointer shrink-0"
+              style={{ backgroundColor: currentTheme.primaryColor }}
+              title="Buka Menu Navigasi"
+              aria-label="Buka Menu Navigasi"
+            >
+              <Menu size={16} />
+              <span>Menu</span>
+            </button>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <TmiiLogo height="1.85rem" color={currentTheme.primaryColor} />
+              <div className="min-w-0">
+                <div className="flex items-center gap-1">
+                  <h1 className="text-[11px] font-extrabold tracking-tight leading-tight font-display text-slate-900 truncate">
+                    Manajemen Aset
+                  </h1>
+                  <span className="bg-amber-100 text-amber-900 text-[8px] font-black px-1.5 py-0.5 rounded-full shrink-0 uppercase tracking-wider">
+                    TMII
+                  </span>
+                </div>
+                <p className="text-[8px] font-semibold text-slate-400 tracking-wide uppercase truncate">
+                  {activeTab === 'dashboard' ? 'Dashboard Utama' :
+                   activeTab === 'tasks' ? 'Monitoring Tugas' :
+                   activeTab.startsWith('fixed-assets') ? 'Aset Tetap' :
+                   activeTab === 'animals' ? 'Aset Satwa' :
+                   activeTab === 'cctv' ? 'CCTV Keamanan' :
+                   activeTab === 'mep' ? 'Aset MEP' :
+                   activeTab === 'museum' ? 'Koleksi Museum' :
+                   'Pengaturan'}
+                </p>
               </div>
-              <p className="text-[9px] font-semibold text-slate-400 tracking-wider mt-0.5 uppercase whitespace-nowrap">Taman Mini Indonesia Indah</p>
             </div>
           </div>
 
@@ -1419,7 +1441,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setActiveTab('whitelist')}
-              className={`sm:hidden p-2 rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center border ${
+              className={`sm:hidden min-h-[38px] min-w-[38px] p-2 rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center border shrink-0 ${
                 activeTab === 'whitelist'
                   ? 'text-white border-white/40 shadow-md'
                   : 'apple-glass text-slate-700 hover:bg-white border-white/80'
@@ -1434,25 +1456,16 @@ export default function App() {
             <button
               type="button"
               onClick={() => setShowLogoutModal(true)}
-              className="sm:hidden p-2 text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center"
+              className="sm:hidden min-h-[38px] min-w-[38px] p-2 text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center shrink-0"
               title="Keluar dari Sistem"
             >
               <LogOut size={15} className="text-red-500" />
-            </button>
-
-            {/* Mobile Menu Trigger Button (Menu Icon) */}
-            <button 
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 apple-glass rounded-xl transition-all shadow-xs cursor-pointer text-slate-700 hover:bg-white border border-white/80"
-              title="Menu"
-            >
-              <Menu size={18} />
             </button>
           </div>
         </header>
 
         {/* 2. DYNAMIC LIQUID GLASS HERO BANNER */}
-        <div className="px-4 md:px-6 pb-2">
+        <div className="px-3 md:px-6 pb-1 md:pb-2">
           {(() => {
             const getThemeBadgeName = () => {
               switch (currentTheme.id) {
@@ -1478,11 +1491,11 @@ export default function App() {
 
             return (
               <div 
-                className={`relative overflow-hidden ${getThemeGradient()} backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white/30 flex flex-col md:flex-row items-center justify-between gap-6 text-white shadow-xl apple-liquid-rim`}
+                className={`relative overflow-hidden ${getThemeGradient()} backdrop-blur-2xl rounded-2xl md:rounded-3xl min-h-[96px] md:h-[150px] ml-0 px-4 py-3 md:px-8 md:pb-8 md:pt-[12px] border border-white/30 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-6 text-white shadow-xl apple-liquid-rim`}
                 id="hero-banner"
               >
                 {/* Background decorative vector motifs for cultural authenticity */}
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-4 opacity-25 pointer-events-none select-none">
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-4 opacity-20 md:opacity-25 pointer-events-none select-none scale-75 md:scale-100 origin-right">
                   {currentTheme.id === 'sumatera' && (
                     <>
                       <BatikSongket size={200} color="#F3E5AB" className="rotate-6" />
@@ -1515,15 +1528,15 @@ export default function App() {
                   )}
                 </div>
 
-                <div className="relative z-10 space-y-2.5 text-center md:text-left min-w-0 flex-1">
-                  <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase shadow-md bg-white/10 text-[#F3E5AB] border border-white/20 backdrop-blur-md">
-                    <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse"></span>
+                <div className="relative z-10 space-y-1 md:space-y-2.5 text-left min-w-0 flex-1 w-full">
+                  <span className="inline-flex items-center gap-1.5 md:gap-2 px-2.5 py-0.5 md:px-3.5 md:py-1.5 rounded-full font-['Poppins',sans-serif] text-[9px] md:text-[11px] font-black tracking-wider md:tracking-widest uppercase shadow-md bg-white/10 text-[#F3E5AB] border border-white/20 backdrop-blur-md">
+                    <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#D4AF37] animate-pulse"></span>
                     {getThemeBadgeName()}
                   </span>
-                  <h2 className="text-xl md:text-2xl font-extrabold text-white tracking-tight leading-tight drop-shadow-md font-display">
+                  <h2 className="text-[15px] md:text-[18px] font-extrabold text-white tracking-tight leading-snug md:leading-tight drop-shadow-md font-display">
                     Sistem Terpadu Manajemen Aset TMII
                   </h2>
-                  <p className="text-xs text-[#F3E5AB]/90 font-medium max-w-2xl">
+                  <p className="text-[10px] text-[#F3E5AB]/90 font-medium max-w-2xl leading-relaxed">
                     Pencatatan, monitoring, dan kontrol seluruh aset yang ada di wilayah TMII secara digital
                   </p>
                 </div>
@@ -1535,7 +1548,7 @@ export default function App() {
         {/* Mobile Menu Drawer (Popup Vertikal) */}
         <AnimatePresence>
           {isMobileMenuOpen && (
-            <div className="fixed inset-0 z-50 md:hidden flex justify-end" id="mobile-drawer">
+            <div className="fixed inset-0 z-50 md:hidden flex justify-start" id="mobile-drawer">
               {/* Backdrop */}
               <motion.div 
                 initial={{ opacity: 0 }}
@@ -1548,11 +1561,11 @@ export default function App() {
               {/* Drawer Content */}
               {/* VisionOS Floating Frosted Glass Drawer Content */}
               <motion.div 
-                initial={{ x: '100%' }}
+                initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="relative w-80 max-w-[85vw] apple-glass-panel h-full shadow-2xl flex flex-col z-10 border-l border-white/80"
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+                className="relative w-72 max-w-[82vw] apple-glass-panel h-full shadow-2xl flex flex-col z-10 border-r border-white/80"
               >
                 <div className="p-5 border-b flex items-center justify-between border-white/60">
                   <div className="flex items-center gap-2.5">
@@ -1774,7 +1787,7 @@ export default function App() {
         </AnimatePresence>
 
         {/* ACTIVE MODULE CONTAINER */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto" id="main-content">
+        <main className="flex-1 px-3 py-2.5 pb-24 md:p-8 overflow-y-auto" id="main-content">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -2014,6 +2027,76 @@ export default function App() {
         />
 
       </div>
+
+      {/* MOBILE BOTTOM NAVIGATION BAR (Thumb-Zone Quick Access) */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 apple-glass border-t border-white/80 shadow-[0_-6px_24px_rgba(15,23,42,0.08)] px-1 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))]"
+        aria-label="Navigasi Mobile"
+        id="mobile-bottom-nav"
+      >
+        <div className="grid grid-cols-5 items-center h-13">
+          {[
+            { id: 'dashboard', label: 'Beranda', icon: LayoutDashboard, isMatch: activeTab === 'dashboard' },
+            { id: 'tasks', label: 'Tugas', icon: CheckSquare, isMatch: activeTab === 'tasks' },
+            { id: 'fixed-assets', label: 'Aset', icon: Database, isMatch: activeTab.startsWith('fixed-assets') },
+            { id: 'whitelist', label: 'Atur', icon: SlidersHorizontal, isMatch: activeTab === 'whitelist' },
+          ].map(item => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setActiveTab(item.id as any);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 rounded-xl transition-all cursor-pointer active:scale-95 ${
+                  item.isMatch
+                    ? 'font-extrabold'
+                    : 'text-slate-500 hover:text-slate-900 font-semibold'
+                }`}
+                style={item.isMatch ? { color: currentTheme.primaryColor } : {}}
+              >
+                <div
+                  className={`p-1 rounded-lg transition-colors ${item.isMatch ? 'bg-slate-900/5' : ''}`}
+                  style={item.isMatch ? { backgroundColor: `${currentTheme.primaryColor}15` } : {}}
+                >
+                  <Icon size={18} />
+                </div>
+                <span className="text-[10px] leading-none tracking-tight whitespace-nowrap">{item.label}</span>
+              </button>
+            );
+          })}
+
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(true)}
+            className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 rounded-xl transition-all cursor-pointer active:scale-95 ${
+              isMobileMenuOpen || ['animals', 'cctv', 'mep', 'museum'].includes(activeTab)
+                ? 'font-extrabold'
+                : 'text-slate-700 hover:text-slate-950 font-bold'
+            }`}
+            style={
+              isMobileMenuOpen || ['animals', 'cctv', 'mep', 'museum'].includes(activeTab)
+                ? { color: currentTheme.primaryColor }
+                : {}
+            }
+          >
+            <div
+              className="p-1 rounded-lg"
+              style={{
+                backgroundColor:
+                  isMobileMenuOpen || ['animals', 'cctv', 'mep', 'museum'].includes(activeTab)
+                    ? `${currentTheme.primaryColor}18`
+                    : 'rgba(15, 23, 42, 0.06)'
+              }}
+            >
+              <Menu size={18} />
+            </div>
+            <span className="text-[10px] leading-none tracking-tight whitespace-nowrap">Menu</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }
