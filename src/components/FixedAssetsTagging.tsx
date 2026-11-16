@@ -209,115 +209,115 @@ export default function FixedAssetsTagging({ assets, theme }: FixedAssetsTagging
   };
 
   return (
-    <div className="space-y-6" id="assets-tagging-container">
+    <div className="space-y-3.5 sm:space-y-6" id="assets-tagging-container">
       {/* Hide elements on print using Tailwind's print: utilities */}
       <div className="print:hidden">
-        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Printer size={20} className="text-slate-500" style={{ color: theme.primaryColor }} />
-              Cetak Tagging QR Code Aset
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Printer size={18} className="text-slate-500 shrink-0" style={{ color: theme.primaryColor }} />
+              <span className="truncate">Cetak Tagging QR Code Aset</span>
             </h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 leading-snug">
               Pilih satu atau beberapa aset tetap untuk dicetak label tagging fisiknya. Mendukung ukuran <strong className="text-slate-700 font-semibold">60x30mm (Standar)</strong> dan <strong className="text-slate-700 font-semibold">50x20mm (Kompak/Mini Roll)</strong>.
             </p>
-            <div className="mt-2 flex flex-wrap items-center gap-3">
+            <div className="mt-2 flex flex-wrap items-center gap-2 sm:gap-3">
               {/* Paper Size Selector */}
-              <div className="flex items-center gap-1.5 bg-slate-100/90 p-1 rounded-xl border border-slate-200/60">
-                <span className="text-[10px] font-black uppercase text-slate-500 px-2 tracking-wider">Ukuran Label:</span>
+              <div className="flex flex-wrap items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200/60 w-full sm:w-auto">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-500 px-1.5 sm:px-2 tracking-wider">Label:</span>
                 <button
                   type="button"
                   onClick={() => setPaperSize('60x30')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex-1 sm:flex-initial px-2 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
                     paperSize === '60x30'
                       ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80 font-black'
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  60 x 30 mm <span className="text-[10px] opacity-70 font-normal">(Standar)</span>
+                  60 x 30 mm <span className="text-[9px] sm:text-[10px] opacity-70 font-normal">(Standar)</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPaperSize('50x20')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex-1 sm:flex-initial px-2 sm:px-3 py-1 rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
                     paperSize === '50x20'
                       ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80 font-black'
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  50 x 20 mm <span className="text-[10px] opacity-70 font-normal">(Kompak)</span>
+                  50 x 20 mm <span className="text-[9px] sm:text-[10px] opacity-70 font-normal">(Kompak)</span>
                 </button>
               </div>
 
-              <div className="text-[10px] bg-amber-50 text-amber-800 px-3 py-1 rounded-lg border border-amber-100 font-medium inline-block">
+              <div className="text-[10px] bg-amber-50 text-amber-800 px-2.5 py-1 rounded-lg border border-amber-100 font-medium inline-block">
                 Tip: Thermal printer akan mencetak pas sesuai ukuran roll terpilih (<strong>{paperSize === '50x20' ? '50 x 20 mm' : '60 x 30 mm'}</strong>).
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 shrink-0">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={downloadAllTagsPDF}
               disabled={selectedAssets.length === 0 || isGeneratingPdf}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl border border-slate-200 text-[11px] sm:text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               title={`Unduh semua label (${paperSize}) sebagai dokumen PDF`}
             >
-              <Download size={14} />
-              <span>{isGeneratingPdf ? 'Membuat PDF...' : `Unduh PDF (${paperSize}) (${selectedAssets.length})`}</span>
+              <Download size={13} className="shrink-0" />
+              <span className="truncate">{isGeneratingPdf ? 'Membuat PDF...' : `PDF (${paperSize}) (${selectedAssets.length})`}</span>
             </button>
             <button
               onClick={openPrintInNewTab}
               disabled={selectedAssets.length === 0}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl border border-slate-200 text-[11px] sm:text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               title="Buka halaman cetak di tab baru browser (bebas dari pembatasan iframe)"
             >
-              <ExternalLink size={14} />
-              <span>Buka di Tab Baru</span>
+              <ExternalLink size={13} className="shrink-0" />
+              <span className="truncate">Tab Baru</span>
             </button>
             <button
               onClick={() => setShowPreview(!showPreview)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
+              className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl border border-slate-200 text-[11px] sm:text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
             >
-              {showPreview ? <EyeOff size={14} /> : <Eye size={14} />}
+              {showPreview ? <EyeOff size={13} className="shrink-0" /> : <Eye size={13} className="shrink-0" />}
               <span>{showPreview ? 'Sembunyikan' : 'Preview'}</span>
             </button>
             <button
               onClick={handlePrint}
               disabled={selectedAssets.length === 0}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-bold shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl text-white text-[11px] sm:text-xs font-bold shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               style={{ 
                 backgroundColor: theme.primaryColor,
                 boxShadow: selectedAssets.length > 0 ? `0 4px 12px ${theme.primaryColor}30` : 'none'
               }}
             >
-              <Printer size={14} />
-              <span>Cetak Tagging ({selectedAssets.length})</span>
+              <Printer size={13} className="shrink-0" />
+              <span className="truncate">Cetak ({selectedAssets.length})</span>
             </button>
           </div>
         </div>
 
         {/* Content Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-6 mt-3.5 sm:mt-6">
           {/* Left panel: Asset Selection */}
-          <div className={`${showPreview ? 'lg:col-span-7' : 'lg:col-span-12'} space-y-4`}>
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
+          <div className={`${showPreview ? 'lg:col-span-7' : 'lg:col-span-12'} space-y-3 sm:space-y-4`}>
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
               {/* Filter controls */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                <div className="relative">
-                  <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <div className="relative col-span-2 sm:col-span-1">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Cari Kode atau Nama Aset..."
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-slate-50 rounded-xl focus:outline-none text-xs border border-slate-100 font-semibold text-gray-800"
+                    className="w-full pl-9 pr-3 py-1.5 sm:py-2 bg-slate-50 rounded-lg sm:rounded-xl focus:outline-none text-xs border border-slate-100 font-semibold text-gray-800"
                   />
                 </div>
 
                 <select
                   value={locationFilter}
                   onChange={e => setLocationFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 rounded-xl focus:outline-none text-xs border border-slate-100 font-semibold text-gray-800"
+                  className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 bg-slate-50 rounded-lg sm:rounded-xl focus:outline-none text-xs border border-slate-100 font-semibold text-gray-800"
                 >
                   <option value="Semua">Semua Lokasi</option>
                   {uniqueLocations.filter(l => l !== 'Semua').map(loc => (
@@ -328,7 +328,7 @@ export default function FixedAssetsTagging({ assets, theme }: FixedAssetsTagging
                 <select
                   value={classificationFilter}
                   onChange={e => setClassificationFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 rounded-xl focus:outline-none text-xs border border-slate-100 font-semibold text-gray-800"
+                  className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 bg-slate-50 rounded-lg sm:rounded-xl focus:outline-none text-xs border border-slate-100 font-semibold text-gray-800"
                 >
                   <option value="Semua">Semua Klasifikasi</option>
                   <option value="Aset">Aset Tetap (FA)</option>

@@ -625,18 +625,18 @@ export default function FixedAssets({
   const maintenanceCount = assets.filter(a => a.status === 'Diperbaiki').length;
 
   return (
-    <div className="space-y-6" id="assets-module">
+    <div className="space-y-3.5 sm:space-y-6" id="assets-module">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" id="assets-header">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4" id="assets-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Database Fixed Asset</h1>
-          <p className="text-sm text-gray-500">Kelola aset fisik, kondisi terkini, dan jadwal pemeliharaan berkala</p>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight leading-snug">Database Fixed Asset</h1>
+          <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5 leading-snug">Kelola aset fisik, kondisi terkini, dan jadwal pemeliharaan berkala</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 sm:gap-2">
           {isAdmin && (
             <button 
               onClick={() => setIsImportOpen(!isImportOpen)}
-              className={`inline-flex items-center gap-2 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors cursor-pointer border border-transparent ${
+              className={`inline-flex items-center justify-center gap-1.5 sm:gap-2 font-semibold text-[11px] sm:text-sm py-2 px-2.5 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-xs transition-colors cursor-pointer border border-transparent ${
                 isImportOpen 
                   ? 'text-white' 
                   : 'bg-white hover:bg-gray-50 text-gray-700 shadow-sm'
@@ -644,47 +644,47 @@ export default function FixedAssets({
               style={{ backgroundColor: isImportOpen ? theme.primaryColor : undefined }}
               id="btn-import-assets-toggle"
             >
-              <FileSpreadsheet size={18} className={isImportOpen ? 'text-white' : 'text-slate-500'} />
-              <span>Import Excel/CSV</span>
+              <FileSpreadsheet className={`w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] shrink-0 ${isImportOpen ? 'text-white' : 'text-slate-500'}`} />
+              <span className="truncate">Import Excel/CSV</span>
             </button>
           )}
           {onNavigateToDepreciation && (
             <button 
               onClick={onNavigateToDepreciation}
-              className="inline-flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors cursor-pointer border border-emerald-200/80"
+              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold text-[11px] sm:text-sm py-2 px-2.5 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-xs transition-colors cursor-pointer border border-emerald-200/80"
               id="btn-navigate-depreciation"
             >
-              <Calculator size={18} className="text-emerald-700" />
-              <span>Depresiasi & Nilai Buku</span>
+              <Calculator className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] text-emerald-700 shrink-0" />
+              <span className="truncate">Depresiasi</span>
             </button>
           )}
           {isAdmin && (
             <button 
               type="button"
               onClick={() => setIsBatchCodeModalOpen(true)}
-              className="inline-flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors cursor-pointer border border-indigo-200/80"
+              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-semibold text-[11px] sm:text-sm py-2 px-2.5 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-xs transition-colors cursor-pointer border border-indigo-200/80"
               id="btn-batch-generate-codes"
               title="Generate dan Standarisasi Semua Kode Aset TMII"
             >
-              <Sparkles size={18} className="text-indigo-600" />
-              <span>Generate Semua Kode</span>
+              <Sparkles className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] text-indigo-600 shrink-0" />
+              <span className="truncate">Generate Kode</span>
             </button>
           )}
           <button 
             onClick={handleExport}
-            className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-[11px] sm:text-sm py-2 px-2.5 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-xs transition-colors cursor-pointer"
             id="btn-export-assets"
           >
-            <FileSpreadsheet size={18} className="text-emerald-600" />
-            <span>Ekspor Excel</span>
+            <FileSpreadsheet className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] text-emerald-600 shrink-0" />
+            <span className="truncate">Ekspor Excel</span>
           </button>
           <button 
             onClick={handleOpenAddModal}
-            className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
+            className="col-span-2 sm:col-span-1 inline-flex items-center justify-center gap-1.5 sm:gap-2 text-white font-semibold text-xs sm:text-sm py-2 px-3 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-md transition-colors cursor-pointer"
             style={{ backgroundColor: theme.primaryColor }}
             id="btn-add-asset"
           >
-            <Plus size={18} />
+            <Plus className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0" />
             <span>Registrasi Aset</span>
           </button>
         </div>
@@ -714,64 +714,64 @@ export default function FixedAssets({
       </AnimatePresence>
 
       {/* Mini Dashboard Pelaporan - completely borderless */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6" id="assets-mini-dashboard">
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-gray-500 uppercase">Nilai Total Aset</span>
-            <p className="text-xl font-extrabold text-slate-900 mt-1">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-6" id="assets-mini-dashboard">
+        <div className="col-span-2 sm:col-span-1 bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase">Nilai Total Aset</span>
+            <p className="text-sm sm:text-xl font-extrabold text-slate-900 mt-0.5 sm:mt-1 truncate">
               Rp {totalCost.toLocaleString('id-ID')}
             </p>
           </div>
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-            <Coins size={22} />
+          <div className="p-2 sm:p-3 bg-emerald-50 text-emerald-600 rounded-lg sm:rounded-xl shrink-0">
+            <Coins className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-gray-500 uppercase">Isu Kerusakan</span>
-            <p className="text-xl font-extrabold text-rose-600 mt-1">
-              {brokenCount} Aset Rusak
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase">Isu Kerusakan</span>
+            <p className="text-sm sm:text-xl font-extrabold text-rose-600 mt-0.5 sm:mt-1 truncate">
+              {brokenCount} Rusak
             </p>
           </div>
-          <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
-            <ShieldAlert size={22} />
+          <div className="p-2 sm:p-3 bg-rose-50 text-rose-600 rounded-lg sm:rounded-xl shrink-0">
+            <ShieldAlert className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-gray-500 uppercase">Sedang Perbaikan</span>
-            <p className="text-xl font-extrabold text-amber-600 mt-1">
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase">Perbaikan</span>
+            <p className="text-sm sm:text-xl font-extrabold text-amber-600 mt-0.5 sm:mt-1 truncate">
               {maintenanceCount} Unit
             </p>
           </div>
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
-            <Settings size={22} />
+          <div className="p-2 sm:p-3 bg-amber-50 text-amber-600 rounded-lg sm:rounded-xl shrink-0">
+            <Settings className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
           </div>
         </div>
       </div>
 
       {/* Filter, Search, and Sorting Panel - completely borderless */}
-      <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-4" id="assets-filter-panel">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+      <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-2.5 sm:space-y-4" id="assets-filter-panel">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-2 sm:gap-4 items-center">
           
-          <div className="relative md:col-span-4">
-            <Search className="absolute left-3.5 top-3 text-gray-400" size={16} />
+          <div className="relative col-span-2 md:col-span-4">
+            <Search className="absolute left-3 top-2.5 text-gray-400" size={15} />
             <input 
               type="text" 
               placeholder="Cari kode, nama, lokasi..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-10 py-2 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none"
+              className="w-full pl-9 pr-10 py-1.5 sm:py-2 bg-slate-50 text-gray-700 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none"
             />
             <button
               type="button"
               onClick={() => setIsQRScannerOpen(true)}
-              className="absolute right-2 top-1.5 p-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-[10px] font-bold"
+              className="absolute right-1.5 top-1 sm:top-1.5 p-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-[10px] font-bold"
               title="Scan QR Code Aset (Kamera)"
             >
-              <Camera size={14} />
+              <Camera size={13} />
               <span className="hidden sm:inline">Scan QR</span>
             </button>
           </div>
@@ -780,7 +780,7 @@ export default function FixedAssets({
             <select 
               value={conditionFilter}
               onChange={e => setConditionFilter(e.target.value)}
-              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none"
+              className="w-full py-1.5 sm:py-2 px-2.5 sm:px-3 bg-slate-50 text-gray-700 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none"
             >
               <option value="Semua">Semua Kondisi</option>
               <option value="Baik">Baik</option>

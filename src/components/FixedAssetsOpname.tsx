@@ -300,34 +300,34 @@ export default function FixedAssetsOpname({ assets, theme, onUpdateAsset, curren
   }, [activeSession]);
 
   return (
-    <div className="space-y-6" id="assets-opname-container">
+    <div className="space-y-3.5 sm:space-y-6" id="assets-opname-container">
       {/* 1. SESSION ACTIVE INTERFACE */}
       {activeSession ? (
-        <div className="space-y-6">
+        <div className="space-y-3.5 sm:space-y-6">
           {/* Header Action Banner */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <span className="inline-block px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-100 text-[10px] font-black uppercase tracking-widest rounded-lg">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+            <div className="min-w-0">
+              <span className="inline-block px-2 py-0.5 sm:px-2.5 sm:py-1 bg-amber-50 text-amber-700 border border-amber-100 text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-lg">
                 Sesi Stock Opname Sedang Berjalan
               </span>
-              <h3 className="text-base font-bold text-slate-900 mt-1.5 flex items-center gap-2">
-                <ClipboardCheck className="text-amber-500" size={18} />
-                {activeSession.sessionName}
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 mt-1 sm:mt-1.5 flex items-center gap-1.5 sm:gap-2">
+                <ClipboardCheck className="text-amber-500 shrink-0" size={17} />
+                <span className="truncate">{activeSession.sessionName}</span>
               </h3>
-              <p className="text-xs text-slate-400 mt-1 font-semibold flex items-center gap-3">
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 font-semibold flex flex-wrap items-center gap-x-2 sm:gap-3">
                 <span>Pemeriksa: <strong>{activeSession.checkedBy}</strong></span>
                 <span>•</span>
                 <span>Lokasi: <strong>{activeSession.locationFilter === 'Semua' ? 'Seluruh Area TMII' : activeSession.locationFilter}</strong></span>
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setIsQRScannerOpen(true)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shadow-md hover:shadow-lg active:scale-98 transition-all cursor-pointer"
+                className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] sm:text-xs font-black shadow-md hover:shadow-lg active:scale-98 transition-all cursor-pointer"
               >
-                <Camera size={16} />
+                <Camera size={15} />
                 <span>Scan QR Kamera (Mobile)</span>
               </button>
 
@@ -337,31 +337,31 @@ export default function FixedAssetsOpname({ assets, theme, onUpdateAsset, curren
                     setActiveSession(null);
                   }
                 }}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-[11px] sm:text-xs font-bold transition-colors cursor-pointer"
               >
                 <Trash2 size={13} />
-                <span>Batalkan Sesi</span>
+                <span>Batalkan</span>
               </button>
 
               <button
                 onClick={handleSaveSession}
                 disabled={isSaving}
-                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1 sm:gap-1.5 px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl text-white text-[11px] sm:text-xs font-bold shadow-md transition-all cursor-pointer"
                 style={{ backgroundColor: theme.primaryColor }}
               >
                 <Save size={13} />
-                <span>{isSaving ? 'Menyimpan Sesi...' : 'Simpan & Selesaikan'}</span>
+                <span>{isSaving ? 'Menyimpan...' : 'Simpan & Selesai'}</span>
               </button>
             </div>
           </div>
 
           {/* Quick Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 sm:gap-4">
             {/* Checked progress */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.01)] col-span-2 md:col-span-1">
-              <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Progress Terperiksa</div>
-              <div className="text-xl font-black text-slate-800 mt-1">{activeStats.checked} / {activeStats.total}</div>
-              <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2 overflow-hidden">
+            <div className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.01)] col-span-2 md:col-span-1">
+              <div className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider">Progress Terperiksa</div>
+              <div className="text-base sm:text-xl font-black text-slate-800 mt-0.5 sm:mt-1">{activeStats.checked} / {activeStats.total}</div>
+              <div className="w-full bg-slate-100 rounded-full h-1.5 mt-1.5 sm:mt-2 overflow-hidden">
                 <div 
                   className="h-1.5 rounded-full transition-all duration-500" 
                   style={{ width: `${activeStats.percent}%`, backgroundColor: theme.primaryColor }}
@@ -371,37 +371,37 @@ export default function FixedAssetsOpname({ assets, theme, onUpdateAsset, curren
             </div>
 
             {/* Sesuai */}
-            <div className="bg-emerald-50/40 p-4 rounded-2xl border border-emerald-100 shadow-[0_4px_12px_rgba(0,0,0,0.01)]">
-              <div className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">Aset Sesuai</div>
-              <div className="text-xl font-black text-emerald-700 mt-1">{activeStats.match}</div>
-              <p className="text-[9px] text-emerald-500 font-semibold mt-1">Sesuai lokasi fisik ekspektasi</p>
+            <div className="bg-emerald-50/40 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-emerald-100 shadow-[0_4px_12px_rgba(0,0,0,0.01)]">
+              <div className="text-[9px] sm:text-[10px] font-black text-emerald-600 uppercase tracking-wider">Aset Sesuai</div>
+              <div className="text-base sm:text-xl font-black text-emerald-700 mt-0.5 sm:mt-1">{activeStats.match}</div>
+              <p className="text-[9px] text-emerald-500 font-semibold mt-0.5 sm:mt-1">Lokasi ekspektasi</p>
             </div>
 
             {/* Salah Lokasi */}
-            <div className="bg-amber-50/40 p-4 rounded-2xl border border-amber-100 shadow-[0_4px_12px_rgba(0,0,0,0.01)]">
-              <div className="text-[10px] font-black text-amber-600 uppercase tracking-wider">Salah Lokasi</div>
-              <div className="text-xl font-black text-amber-700 mt-1">{activeStats.mismatch}</div>
-              <p className="text-[9px] text-amber-500 font-semibold mt-1">Temuan di tempat berbeda</p>
+            <div className="bg-amber-50/40 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-amber-100 shadow-[0_4px_12px_rgba(0,0,0,0.01)]">
+              <div className="text-[9px] sm:text-[10px] font-black text-amber-600 uppercase tracking-wider">Salah Lokasi</div>
+              <div className="text-base sm:text-xl font-black text-amber-700 mt-0.5 sm:mt-1">{activeStats.mismatch}</div>
+              <p className="text-[9px] text-amber-500 font-semibold mt-0.5 sm:mt-1">Tempat berbeda</p>
             </div>
 
             {/* Hilang */}
-            <div className="bg-red-50/40 p-4 rounded-2xl border border-red-100 shadow-[0_4px_12px_rgba(0,0,0,0.01)]">
-              <div className="text-[10px] font-black text-red-600 uppercase tracking-wider">Aset Hilang</div>
-              <div className="text-xl font-black text-red-700 mt-1">{activeStats.missing}</div>
-              <p className="text-[9px] text-red-500 font-semibold mt-1">Fisik tidak ditemukan</p>
+            <div className="bg-red-50/40 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-red-100 shadow-[0_4px_12px_rgba(0,0,0,0.01)]">
+              <div className="text-[9px] sm:text-[10px] font-black text-red-600 uppercase tracking-wider">Aset Hilang</div>
+              <div className="text-base sm:text-xl font-black text-red-700 mt-0.5 sm:mt-1">{activeStats.missing}</div>
+              <p className="text-[9px] text-red-500 font-semibold mt-0.5 sm:mt-1">Tidak ditemukan</p>
             </div>
 
             {/* Sisa */}
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-150 shadow-[0_4px_12px_rgba(0,0,0,0.01)]">
-              <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Belum Diperiksa</div>
-              <div className="text-xl font-black text-slate-600 mt-1">{activeStats.remaining}</div>
-              <p className="text-[9px] text-slate-400 font-semibold mt-1">Menunggu peninjauan fisik</p>
+            <div className="bg-slate-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-150 shadow-[0_4px_12px_rgba(0,0,0,0.01)] col-span-2 sm:col-span-1">
+              <div className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider">Belum Diperiksa</div>
+              <div className="text-base sm:text-xl font-black text-slate-600 mt-0.5 sm:mt-1">{activeStats.remaining}</div>
+              <p className="text-[9px] text-slate-400 font-semibold mt-0.5 sm:mt-1">Menunggu tinjauan</p>
             </div>
           </div>
 
           {/* Quick barcode & mobile camera scanner */}
-          <div className="bg-slate-900 text-white rounded-3xl p-5 shadow-lg border border-slate-800">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div className="bg-slate-900 text-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-lg border border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 pb-2.5 sm:pb-3 border-b border-slate-800">
               <div>
                 <h4 className="text-[11px] font-black text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
                   <QrCode size={15} className="text-amber-400" />
@@ -415,25 +415,25 @@ export default function FixedAssetsOpname({ assets, theme, onUpdateAsset, curren
               <button
                 type="button"
                 onClick={() => setIsQRScannerOpen(true)}
-                className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-98 shrink-0"
+                className="px-3.5 py-2 sm:px-4 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black rounded-lg sm:rounded-xl text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-98 shrink-0"
               >
-                <Camera size={16} />
+                <Camera size={15} />
                 <span>Mulai Scan Kamera (Mobile)</span>
               </button>
             </div>
             
-            <form onSubmit={handleScanSubmit} className="mt-3 flex flex-col sm:flex-row gap-3">
+            <form onSubmit={handleScanSubmit} className="mt-2.5 sm:mt-3 flex flex-col sm:flex-row gap-2.5 sm:gap-3">
               <div className="relative flex-1">
                 <input
                   type="text"
-                  placeholder="Atau ketik Kode Aset (e.g. BMN.01.KND...) / Nama, tekan Enter..."
+                  placeholder="Ketik Kode Aset / Nama, tekan Enter..."
                   value={scanInput}
                   onChange={e => setScanInput(e.target.value)}
-                  className="w-full bg-slate-800 text-sm font-bold p-3 pr-24 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400 text-white placeholder-slate-500"
+                  className="w-full bg-slate-800 text-xs sm:text-sm font-bold p-2.5 sm:p-3 pr-22 sm:pr-24 rounded-lg sm:rounded-xl border border-slate-700 focus:outline-none focus:border-amber-400 text-white placeholder-slate-500"
                 />
                 <button
                   type="submit"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                  className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-[11px] sm:text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg transition-colors cursor-pointer"
                 >
                   Cocokkan
                 </button>
@@ -441,19 +441,19 @@ export default function FixedAssetsOpname({ assets, theme, onUpdateAsset, curren
             </form>
 
             {scanMessage && (
-              <div className={`mt-3 p-3 rounded-xl text-xs font-bold flex items-center gap-2.5 ${
+              <div className={`mt-2.5 sm:mt-3 p-2.5 sm:p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
                 scanMessage.type === 'success' ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/50' : 'bg-red-950/80 text-red-300 border border-red-800/50'
               }`}>
-                {scanMessage.type === 'success' ? <CheckCircle2 size={16} className="text-emerald-400 shrink-0" /> : <AlertTriangle size={16} className="text-red-400 shrink-0" />}
+                {scanMessage.type === 'success' ? <CheckCircle2 size={15} className="text-emerald-400 shrink-0" /> : <AlertTriangle size={15} className="text-red-400 shrink-0" />}
                 <span>{scanMessage.text}</span>
               </div>
             )}
           </div>
 
           {/* Checklist Area Layout */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
-              <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 border-b border-slate-100 pb-3 sm:pb-4 mb-3 sm:mb-4">
+              <h4 className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
                 <ClipboardCheck size={14} />
                 Daftar Checklist Aset ({activeSession.items.length})
               </h4>
@@ -466,20 +466,20 @@ export default function FixedAssetsOpname({ assets, theme, onUpdateAsset, curren
                   onChange={e => setAutoCorrectLocations(e.target.checked)}
                   className="rounded text-indigo-600 focus:ring-indigo-500"
                 />
-                <span className="text-xs font-bold text-slate-600">
+                <span className="text-[11px] sm:text-xs font-bold text-slate-600">
                   Perbarui lokasi database otomatis jika aset ditemukan salah lokasi
                 </span>
               </label>
             </div>
 
             {/* Checklist items list */}
-            <div className="space-y-3.5 max-h-[500px] overflow-y-auto pr-1">
+            <div className="space-y-2.5 sm:space-y-3.5 max-h-[500px] overflow-y-auto pr-1">
               {activeSession.items.map(item => {
                 const isChecked = item.status !== 'Belum Diperiksa';
                 return (
                   <div 
                     key={item.assetId} 
-                    className={`p-4 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                    className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-4 ${
                       item.status === 'Sesuai' ? 'bg-emerald-50/20 border-emerald-100/50' :
                       item.status === 'Tidak Sesuai' ? 'bg-amber-50/20 border-amber-100/50' :
                       item.status === 'Hilang' ? 'bg-red-50/20 border-red-100/50' :
@@ -505,7 +505,7 @@ export default function FixedAssetsOpname({ assets, theme, onUpdateAsset, curren
                         {item.assetName}
                       </h5>
 
-                      <div className="flex items-center gap-2 mt-2 text-[10px]">
+                      <div className="flex items-center gap-2 mt-1.5 sm:mt-2 text-[10px]">
                         <span className="font-bold text-slate-400 uppercase tracking-wider">Ekspektasi:</span>
                         <span className="font-semibold text-slate-600 flex items-center gap-0.5">
                           <MapPin size={9} />
@@ -537,7 +537,7 @@ export default function FixedAssetsOpname({ assets, theme, onUpdateAsset, curren
                     </div>
 
                     {/* Right: Tactics buttons */}
-                    <div className="flex gap-1.5 shrink-0">
+                    <div className="flex gap-1.5 shrink-0 flex-wrap">
                       {/* Button Sesuai */}
                       <button
                         onClick={() => handleUpdateItemStatus(item.assetId, 'Sesuai')}
@@ -597,45 +597,45 @@ export default function FixedAssetsOpname({ assets, theme, onUpdateAsset, curren
         </div>
       ) : (
         /* 2. HISTORY LOGS & SESSION START INTERFACE */
-        <div className="space-y-6">
+        <div className="space-y-3.5 sm:space-y-6">
           {/* Dashboard Intro */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-6">
             {/* Create new Sesi Opname card */}
-            <div className="md:col-span-5 bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.015)] h-fit">
-              <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-1.5">
+            <div className="md:col-span-5 bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.015)] h-fit">
+              <h4 className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-widest mb-3 sm:mb-4 flex items-center gap-1.5">
                 <Play size={14} className="text-emerald-500" />
                 Mulai Sesi Stock Opname Baru
               </h4>
 
-              <form onSubmit={handleStartSession} className="space-y-4">
+              <form onSubmit={handleStartSession} className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Nama Sesi Stock Opname *</label>
+                  <label className="block text-[11px] sm:text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Nama Sesi Stock Opname *</label>
                   <input
                     type="text"
                     placeholder="e.g. Stock Opname - Gedung Pengelola Q3"
                     value={formSessionName}
                     onChange={e => setFormSessionName(e.target.value)}
                     required
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-xs border border-slate-100 font-semibold text-gray-800"
+                    className="w-full p-2 sm:p-2.5 bg-slate-50 rounded-lg sm:rounded-xl focus:outline-none text-xs border border-slate-100 font-semibold text-gray-800"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Pemeriksa / Penanggung Jawab</label>
+                  <label className="block text-[11px] sm:text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Pemeriksa / Penanggung Jawab</label>
                   <input
                     type="text"
                     value={formCheckedBy}
                     onChange={e => setFormCheckedBy(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-xs border border-slate-100 font-semibold text-gray-800"
+                    className="w-full p-2 sm:p-2.5 bg-slate-50 rounded-lg sm:rounded-xl focus:outline-none text-xs border border-slate-100 font-semibold text-gray-800"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Filter Wilayah / Lokasi pemeriksaan</label>
+                  <label className="block text-[11px] sm:text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Filter Wilayah / Lokasi pemeriksaan</label>
                   <select
                     value={formLocationFilter}
                     onChange={e => setFormLocationFilter(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 rounded-xl focus:outline-none text-xs border border-slate-100 font-semibold text-gray-800"
+                    className="w-full p-2 sm:p-2.5 bg-slate-50 rounded-lg sm:rounded-xl focus:outline-none text-xs border border-slate-100 font-semibold text-gray-800"
                   >
                     <option value="Semua">Semua Lokasi (Seluruh Aset)</option>
                     {uniqueLocations.filter(l => l !== 'Semua').map(loc => (
@@ -649,7 +649,7 @@ export default function FixedAssetsOpname({ assets, theme, onUpdateAsset, curren
 
                 <button
                   type="submit"
-                  className="w-full py-3 px-4 rounded-xl text-white font-bold text-xs shadow-md hover:brightness-105 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-2.5 sm:py-3 px-4 rounded-xl text-white font-bold text-xs shadow-md hover:brightness-105 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   style={{ backgroundColor: theme.primaryColor, boxShadow: `0 4px 14px ${theme.primaryColor}30` }}
                 >
                   <Play size={14} />
@@ -659,8 +659,8 @@ export default function FixedAssetsOpname({ assets, theme, onUpdateAsset, curren
             </div>
 
             {/* Past History Sesi Opname table */}
-            <div className="md:col-span-7 bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
-              <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <div className="md:col-span-7 bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
+              <h4 className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-widest mb-3 sm:mb-4 flex items-center gap-2">
                 <BarChart2 size={14} />
                 Riwayat Sesi Stock Opname
               </h4>

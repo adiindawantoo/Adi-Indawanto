@@ -731,65 +731,65 @@ export default function FixedAssetsLocations({
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-3.5 sm:space-y-6 pb-8 sm:pb-12">
       
       {/* 1. TOP HEADER & SEARCH BAR */}
-      <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white/80 backdrop-blur-md p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 sm:gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl text-white shadow-xs" style={{ backgroundColor: theme.primaryColor }}>
-              <Compass size={20} />
+            <span className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-white shadow-xs shrink-0" style={{ backgroundColor: theme.primaryColor }}>
+              <Compass className="w-4 h-4 sm:w-5 sm:h-5" />
             </span>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Peta & Lokasi Aset Terpadu TMII</h2>
+            <h2 className="text-base sm:text-xl font-black text-slate-900 tracking-tight leading-snug">Peta & Lokasi Aset Terpadu TMII</h2>
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 sm:mt-1 leading-snug">
             Sistem pemetaan spasial interaktif aset tetap berdasarkan 5 wilayah utama Taman Mini Indonesia Indah.
           </p>
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center gap-2 w-full md:w-auto flex-wrap">
+        <div className="grid grid-cols-2 sm:flex items-center gap-1.5 sm:gap-2 w-full md:w-auto flex-wrap">
           <button
             onClick={handleDownloadLocations}
             disabled={downloadingLocs}
-            className="flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+            className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-2xl text-[11px] sm:text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-all cursor-pointer shadow-xs disabled:opacity-50"
             title="Unduh seluruh kolom daftar lokasi terkonfigurasi dalam format Excel (.xlsx)"
           >
-            <FileSpreadsheet size={16} className="text-emerald-200" />
-            <span>{downloadingLocs ? 'Mengunduh...' : 'Download Daftar Lokasi (.xlsx)'}</span>
+            <FileSpreadsheet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-200 shrink-0" />
+            <span className="truncate">{downloadingLocs ? 'Mengunduh...' : 'Lokasi (.xlsx)'}</span>
           </button>
 
           <button
             onClick={() => setIsMasterMapOpen(true)}
-            className="flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold text-slate-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-all cursor-pointer shadow-xs"
+            className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-2xl text-[11px] sm:text-xs font-bold text-slate-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-all cursor-pointer shadow-xs"
           >
-            <MapIcon size={16} className="text-amber-700" />
-            <span>Lihat Master Map Reference TMII</span>
+            <MapIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-700 shrink-0" />
+            <span className="truncate">Master Map</span>
           </button>
         </div>
       </div>
 
       {/* 2. REGION TABS (UTARA, SELATAN, BARAT, TIMUR, PUSAT) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
         {/* SEMUA REGION BUTTON */}
         <button
           onClick={() => {
             setSelectedRegion('semua');
             setSelectedHotspot(null);
           }}
-          className={`p-4 rounded-2xl border transition-all text-left cursor-pointer flex flex-col justify-between relative overflow-hidden ${
+          className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all text-left cursor-pointer flex flex-col justify-between relative overflow-hidden ${
             selectedRegion === 'semua'
               ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-400/20'
               : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-2xs'
           }`}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-wider opacity-80">Semua Area</span>
-            <Building2 size={16} className={selectedRegion === 'semua' ? 'text-amber-400' : 'text-slate-400'} />
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider opacity-80">Semua Area</span>
+            <Building2 size={14} className={selectedRegion === 'semua' ? 'text-amber-400' : 'text-slate-400'} />
           </div>
           <div>
-            <div className="text-lg font-black">{regionStats.semua.count} <span className="text-xs font-semibold opacity-70">Aset</span></div>
-            <div className="text-[10px] font-semibold opacity-80 mt-0.5 truncate">{formatRupiah(regionStats.semua.totalCost)}</div>
+            <div className="text-base sm:text-lg font-black">{regionStats.semua.count} <span className="text-[11px] sm:text-xs font-semibold opacity-70">Aset</span></div>
+            <div className="text-[9px] sm:text-[10px] font-semibold opacity-80 mt-0.5 truncate">{formatRupiah(regionStats.semua.totalCost)}</div>
           </div>
         </button>
 
@@ -805,7 +805,7 @@ export default function FixedAssetsLocations({
                 setSelectedRegion(reg.id);
                 setSelectedHotspot(null);
               }}
-              className={`p-4 rounded-2xl border transition-all text-left cursor-pointer flex flex-col justify-between relative overflow-hidden ${
+              className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all text-left cursor-pointer flex flex-col justify-between relative overflow-hidden ${
                 isActive
                   ? `${reg.bgLightClass} ${reg.borderClass} shadow-md ring-2 ring-amber-500/20`
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-2xs'
@@ -813,23 +813,23 @@ export default function FixedAssetsLocations({
             >
               {/* Top Accent line */}
               <div 
-                className="absolute top-0 left-0 right-0 h-1.5"
+                className="absolute top-0 left-0 right-0 h-1 sm:h-1.5"
                 style={{ backgroundColor: reg.accentHex }}
               />
 
-              <div className="flex items-center justify-between mb-2 mt-1">
-                <span className="text-[11px] font-black uppercase tracking-wider">{reg.shortName}</span>
+              <div className="flex items-center justify-between mb-1.5 sm:mb-2 mt-0.5 sm:mt-1">
+                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider">{reg.shortName}</span>
                 <span 
-                  className="w-2.5 h-2.5 rounded-full"
+                  className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full"
                   style={{ backgroundColor: reg.accentHex }}
                 />
               </div>
 
               <div>
-                <div className="text-lg font-black text-slate-900">
-                  {stat.count} <span className="text-xs font-semibold text-slate-500">Aset</span>
+                <div className="text-base sm:text-lg font-black text-slate-900">
+                  {stat.count} <span className="text-[11px] sm:text-xs font-semibold text-slate-500">Aset</span>
                 </div>
-                <div className="text-[10px] font-bold text-slate-600 mt-0.5 truncate">
+                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 mt-0.5 truncate">
                   {formatRupiah(stat.totalCost)}
                 </div>
               </div>
@@ -839,16 +839,16 @@ export default function FixedAssetsLocations({
       </div>
 
       {/* 3. INTERACTIVE MAP VIEW & HOTSPOTS CANVAS */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+      <div className="bg-white p-3.5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xs space-y-3 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 border-b border-slate-100 pb-3 sm:pb-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 uppercase tracking-wider">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-amber-100 text-amber-800 uppercase tracking-wider">
                 Visual Spasial TMII
               </span>
-              <h3 className="text-base font-extrabold text-slate-900">Peta Digital Interaktif</h3>
+              <h3 className="text-sm sm:text-base font-extrabold text-slate-900">Peta Digital Interaktif</h3>
             </div>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 leading-snug">
               Klik pada simpul / titik lokasi di bawah ini untuk menyaring dan melihat daftar aset di lokasi tersebut.
             </p>
           </div>

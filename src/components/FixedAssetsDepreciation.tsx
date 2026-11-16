@@ -196,66 +196,66 @@ export default function FixedAssetsDepreciation({
   };
 
   return (
-    <div className="space-y-6" id="assets-depreciation-module">
+    <div className="space-y-3.5 sm:space-y-6" id="assets-depreciation-module">
       
       {/* Header Halaman */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 sm:gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <Calculator size={13} />
+            <span className="px-2 py-0.5 sm:px-2.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1 sm:gap-1.5">
+              <Calculator className="w-3 h-3 sm:w-[13px] sm:h-[13px]" />
               <span>Modul Akuntansi & Valuasi Aset</span>
             </span>
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
+          <h1 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight mt-1 leading-snug">
             Perhitungan Depresiasi & Nilai Buku Aset
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-[11px] sm:text-sm text-slate-500 mt-0.5 leading-snug">
             Kalkulasi beban penyusutan berkala, akumulasi depresiasi, dan nilai buku bersih (Net Book Value) berdasarkan masa manfaat aset tetap TMII
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid grid-cols-2 sm:flex items-center gap-1.5 sm:gap-2 flex-wrap">
           <button
             onClick={handleExportExcel}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 active:scale-98 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-emerald-700 hover:bg-emerald-800 active:scale-98 text-white rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
-            <FileSpreadsheet size={16} />
-            <span>Ekspor Rekap Excel ({summary.targetMonthLabel})</span>
+            <FileSpreadsheet className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Ekspor ({summary.targetMonthLabel})</span>
           </button>
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-xs"
             title="Cetak Laporan Depresiasi"
           >
-            <Printer size={16} />
-            <span className="hidden sm:inline">Cetak Laporan</span>
+            <Printer className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>Cetak Laporan</span>
           </button>
         </div>
       </div>
 
       {/* Target Month Controller Card - The Core Feature */}
-      <div className="bg-white p-5 rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-slate-100 space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-slate-100 space-y-2.5 sm:space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
           
           {/* Target Month Title & Indicators */}
-          <div className="flex items-center gap-3.5">
-            <div className="p-3 bg-emerald-50 text-emerald-700 rounded-2xl shrink-0">
-              <Calendar size={24} />
+          <div className="flex items-center gap-2.5 sm:gap-3.5">
+            <div className="p-2 sm:p-3 bg-emerald-50 text-emerald-700 rounded-xl sm:rounded-2xl shrink-0">
+              <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                Periode Evaluasi Depresiasi yang Dipilih
+              <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                Periode Evaluasi Depresiasi
               </span>
-              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 flex-wrap">
+                <span className="text-base sm:text-2xl font-black text-slate-900 tracking-tight">
                   {summary.targetMonthLabel}
                 </span>
-                <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-mono font-bold">
+                <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-lg text-[10px] sm:text-xs font-mono font-bold">
                   {targetYearMonth}
                 </span>
                 {targetYearMonth === `${defaultYear}-${defaultMonth}` && (
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold">
+                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[9px] sm:text-[10px] font-bold">
                     Bulan Berjalan
                   </span>
                 )}
@@ -264,20 +264,20 @@ export default function FixedAssetsDepreciation({
           </div>
 
           {/* Month / Year Selectors & Step Buttons */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
             <button
               onClick={handlePrevMonth}
-              className="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition-colors cursor-pointer"
+              className="p-2 sm:p-2.5 bg-slate-100 hover:bg-slate-200 rounded-lg sm:rounded-xl text-slate-700 transition-colors cursor-pointer"
               title="Mundur 1 Bulan"
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
             </button>
 
             {/* Dropdown Bulan */}
             <select
               value={selectedMonth}
               onChange={e => setSelectedMonth(parseInt(e.target.value, 10))}
-              className="py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
+              className="py-1.5 sm:py-2 px-2.5 sm:px-3 bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
             >
               {INDONESIAN_MONTHS.map((mName, idx) => (
                 <option key={mName} value={idx + 1}>{mName}</option>
@@ -288,7 +288,7 @@ export default function FixedAssetsDepreciation({
             <select
               value={selectedYear}
               onChange={e => setSelectedYear(parseInt(e.target.value, 10))}
-              className="py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
+              className="py-1.5 sm:py-2 px-2.5 sm:px-3 bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
             >
               {Array.from({ length: 16 }, (_, i) => defaultYear - 5 + i).map(yr => (
                 <option key={yr} value={yr}>{yr}</option>
@@ -297,23 +297,23 @@ export default function FixedAssetsDepreciation({
 
             <button
               onClick={handleNextMonth}
-              className="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition-colors cursor-pointer"
+              className="p-2 sm:p-2.5 bg-slate-100 hover:bg-slate-200 rounded-lg sm:rounded-xl text-slate-700 transition-colors cursor-pointer"
               title="Maju 1 Bulan"
             >
-              <ChevronRight size={18} />
+              <ChevronRight className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
             </button>
 
             {/* Quick shortcuts */}
-            <div className="flex items-center gap-1.5 ml-1">
+            <div className="flex items-center gap-1.5 sm:ml-1">
               <button
                 onClick={handleResetToCurrentMonth}
-                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                className="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-colors cursor-pointer"
               >
                 Bulan Ini
               </button>
               <button
                 onClick={handleSetToEndOfYear}
-                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                className="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-colors cursor-pointer"
               >
                 Akhir Tahun (Des)
               </button>
@@ -322,14 +322,14 @@ export default function FixedAssetsDepreciation({
 
         </div>
 
-        <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between text-xs text-slate-600 flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <Info size={15} className="text-emerald-600 shrink-0" />
+        <div className="p-2.5 sm:p-3 bg-slate-50 border border-slate-100 rounded-xl sm:rounded-2xl flex items-center justify-between text-[11px] sm:text-xs text-slate-600 flex-wrap gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Info size={14} className="text-emerald-600 shrink-0" />
             <span>
               Menghitung posisi <strong>Akumulasi Depresiasi</strong> dan <strong>Nilai Buku Bersih (NBV)</strong> s/d akhir <strong>{summary.targetMonthLabel}</strong> berdasarkan metode Garis Lurus (Straight-Line) & Tanah Non-Depresiasi sesuai PSAK 16.
             </span>
           </div>
-          <div className="flex items-center gap-2 flex-wrap text-slate-500 font-semibold text-[11px]">
+          <div className="flex items-center gap-2 flex-wrap text-slate-500 font-semibold text-[10px] sm:text-[11px]">
             <span>Total {summary.totalAssets} Aset</span>
             <span>•</span>
             <span className="text-emerald-700">Aktif Menyusut: {summary.activeDepreciatingCount}</span>
@@ -346,78 +346,78 @@ export default function FixedAssetsDepreciation({
       </div>
 
       {/* 4 Core Financial Metrics for Selected Month */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         
         {/* Card 1: Total Nilai Perolehan */}
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-slate-100 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              Total Nilai Perolehan (CAPEX)
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-slate-100 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">
+              Total CAPEX
             </span>
-            <p className="text-lg sm:text-xl font-black text-slate-900 mt-1">
+            <p className="text-xs sm:text-xl font-black text-slate-900 mt-0.5 sm:mt-1 truncate">
               {formatRupiah(summary.totalAcquisitionCost)}
             </p>
-            <span className="text-[11px] text-slate-400 mt-0.5 block">
-              Modal aset tetap terdata
+            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 block truncate">
+              Modal aset tetap
             </span>
           </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl shrink-0">
-            <Building2 size={22} />
+          <div className="p-2 sm:p-3 bg-blue-50 text-blue-600 rounded-lg sm:rounded-2xl shrink-0">
+            <Building2 className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
           </div>
         </div>
 
         {/* Card 2: Beban Depresiasi Bulan Terpilih */}
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-slate-100 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-amber-600 uppercase tracking-wider block">
-              Beban Depresiasi {summary.targetMonthLabel}
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-slate-100 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-bold text-amber-600 uppercase tracking-wider block truncate">
+              Beban {summary.targetMonthLabel}
             </span>
-            <p className="text-lg sm:text-xl font-black text-amber-600 mt-1">
+            <p className="text-xs sm:text-xl font-black text-amber-600 mt-0.5 sm:mt-1 truncate">
               {formatRupiah(summary.totalMonthlyExpense)}
-              <span className="text-xs font-normal text-slate-400 ml-1">/ bln</span>
+              <span className="text-[10px] sm:text-xs font-normal text-slate-400 ml-0.5 sm:ml-1">/bln</span>
             </p>
-            <span className="text-[11px] text-slate-400 mt-0.5 block">
-              Beban bulan {summary.targetMonthLabel}
+            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 block truncate">
+              Penyusutan bulanan
             </span>
           </div>
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl shrink-0">
-            <TrendingDown size={22} />
+          <div className="p-2 sm:p-3 bg-amber-50 text-amber-600 rounded-lg sm:rounded-2xl shrink-0">
+            <TrendingDown className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
           </div>
         </div>
 
         {/* Card 3: Total Akumulasi Depresiasi */}
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-slate-100 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              Akumulasi Depresiasi s/d {summary.targetMonthLabel}
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-slate-100 flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block truncate">
+              Akumulasi s/d {summary.targetMonthLabel}
             </span>
-            <p className="text-lg sm:text-xl font-black text-slate-900 mt-1">
+            <p className="text-xs sm:text-xl font-black text-slate-900 mt-0.5 sm:mt-1 truncate">
               {formatRupiah(summary.totalAccumulatedDepreciation)}
             </p>
-            <span className="text-[11px] text-slate-400 mt-0.5 block">
-              Telah menyusut {summary.averageDepreciationRatio}%
+            <span className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 block truncate">
+              Menyusut {summary.averageDepreciationRatio}%
             </span>
           </div>
-          <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl shrink-0">
-            <Clock size={22} />
+          <div className="p-2 sm:p-3 bg-rose-50 text-rose-600 rounded-lg sm:rounded-2xl shrink-0">
+            <Clock className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
           </div>
         </div>
 
         {/* Card 4: Nilai Buku Bersih (NBV) */}
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-emerald-100 bg-gradient-to-br from-emerald-50/40 to-white flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider block">
-              Nilai Buku Bersih (NBV) {summary.targetMonthLabel}
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-emerald-100 bg-gradient-to-br from-emerald-50/40 to-white flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-[11px] font-bold text-emerald-700 uppercase tracking-wider block truncate">
+              Nilai Buku (NBV)
             </span>
-            <p className="text-lg sm:text-xl font-black text-emerald-700 mt-1">
+            <p className="text-xs sm:text-xl font-black text-emerald-700 mt-0.5 sm:mt-1 truncate">
               {formatRupiah(summary.totalBookValue)}
             </p>
-            <span className="text-[11px] text-emerald-600/90 mt-0.5 block">
-              Sisa nilai aset di neraca
+            <span className="text-[10px] sm:text-[11px] text-emerald-600/90 mt-0.5 block truncate">
+              Sisa nilai neraca
             </span>
           </div>
-          <div className="p-3 bg-emerald-100 text-emerald-700 rounded-2xl shrink-0">
-            <Coins size={22} />
+          <div className="p-2 sm:p-3 bg-emerald-100 text-emerald-700 rounded-lg sm:rounded-2xl shrink-0">
+            <Coins className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
           </div>
         </div>
 

@@ -254,18 +254,18 @@ export default function AnimalAssets({
   const sickCount = animals.filter(a => a.healthStatus === 'Sakit' || a.healthStatus === 'Dalam Perawatan').length;
 
   return (
-    <div className="space-y-6" id="animals-module">
+    <div className="space-y-3.5 sm:space-y-6" id="animals-module">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" id="animals-header">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4" id="animals-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Database Satwa Wahana</h1>
-          <p className="text-sm text-gray-500">Pendataan dan inventarisasi koleksi satwa TMII (Nama Satwa, Latin, Jenis, Lokasi, Kesehatan)</p>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight leading-snug">Database Satwa Wahana</h1>
+          <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5 leading-snug">Pendataan dan inventarisasi koleksi satwa TMII (Nama Satwa, Latin, Jenis, Lokasi, Kesehatan)</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 sm:gap-2">
           {isAdmin && (
             <button 
               onClick={() => setIsImportOpen(!isImportOpen)}
-              className={`inline-flex items-center gap-2 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors cursor-pointer border border-transparent ${
+              className={`inline-flex items-center justify-center gap-1.5 sm:gap-2 font-semibold text-[11px] sm:text-sm py-2 px-2.5 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-xs transition-colors cursor-pointer border border-transparent ${
                 isImportOpen 
                   ? 'text-white' 
                   : 'bg-white hover:bg-gray-50 text-gray-700 shadow-sm'
@@ -273,25 +273,25 @@ export default function AnimalAssets({
               style={{ backgroundColor: isImportOpen ? theme.primaryColor : undefined }}
               id="btn-import-animals-toggle"
             >
-              <FileSpreadsheet size={18} className={isImportOpen ? 'text-white' : 'text-slate-500'} />
-              <span>Import Excel/CSV</span>
+              <FileSpreadsheet className={`w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] shrink-0 ${isImportOpen ? 'text-white' : 'text-slate-500'}`} />
+              <span className="truncate">Import Excel/CSV</span>
             </button>
           )}
           <button 
             onClick={handleExport}
-            className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-[11px] sm:text-sm py-2 px-2.5 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-xs transition-colors cursor-pointer"
             id="btn-export-animals"
           >
-            <FileSpreadsheet size={18} className="text-emerald-600" />
-            <span>Ekspor Excel</span>
+            <FileSpreadsheet className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] text-emerald-600 shrink-0" />
+            <span className="truncate">Ekspor Excel</span>
           </button>
           <button 
             onClick={handleOpenAddModal}
-            className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
+            className="col-span-2 sm:col-span-1 inline-flex items-center justify-center gap-1.5 sm:gap-2 text-white font-semibold text-xs sm:text-sm py-2 px-3 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-md transition-colors cursor-pointer"
             style={{ backgroundColor: theme.primaryColor }}
             id="btn-add-animal"
           >
-            <Plus size={18} />
+            <Plus className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0" />
             <span>Registrasi Satwa</span>
           </button>
         </div>
@@ -321,58 +321,58 @@ export default function AnimalAssets({
       </AnimatePresence>
 
       {/* Mini Dashboard Pelaporan */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6" id="animals-mini-dashboard">
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Populasi Satwa</span>
-            <p className="text-xl font-extrabold text-slate-900 mt-1">{totalCount} Ekor terdaftar</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-6" id="animals-mini-dashboard">
+        <div className="col-span-2 sm:col-span-1 bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Populasi Satwa</span>
+            <p className="text-sm sm:text-xl font-extrabold text-slate-900 mt-0.5 sm:mt-1 truncate">{totalCount} Ekor terdaftar</p>
           </div>
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-            <Heart size={22} className="fill-emerald-500 text-emerald-500" />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Isu Kesehatan</span>
-            <p className="text-xl font-extrabold text-rose-600 mt-1">
-              {sickCount} Satwa Sakit / Rawat
-            </p>
-          </div>
-          <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
-            <Activity size={22} />
+          <div className="p-2 sm:p-3 bg-emerald-50 text-emerald-600 rounded-lg sm:rounded-xl shrink-0">
+            <Heart className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px] fill-emerald-500 text-emerald-500" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Kondisi Sehat Prima</span>
-            <p className="text-xl font-extrabold text-teal-600 mt-1">
-              {totalCount - sickCount} Ekor ({totalCount ? Math.round(((totalCount - sickCount) / totalCount) * 100) : 100}%)
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">Isu Kesehatan</span>
+            <p className="text-sm sm:text-xl font-extrabold text-rose-600 mt-0.5 sm:mt-1 truncate">
+              {sickCount} Sakit/Rawat
             </p>
           </div>
-          <div className="p-3 bg-teal-50 text-teal-600 rounded-xl">
-            <ShieldCheck size={22} />
+          <div className="p-2 sm:p-3 bg-rose-50 text-rose-600 rounded-lg sm:rounded-xl shrink-0">
+            <Activity className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
+          </div>
+        </div>
+
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">Sehat Prima</span>
+            <p className="text-sm sm:text-xl font-extrabold text-teal-600 mt-0.5 sm:mt-1 truncate">
+              {totalCount - sickCount} ({totalCount ? Math.round(((totalCount - sickCount) / totalCount) * 100) : 100}%)
+            </p>
+          </div>
+          <div className="p-2 sm:p-3 bg-teal-50 text-teal-600 rounded-lg sm:rounded-xl shrink-0">
+            <ShieldCheck className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
           </div>
         </div>
       </div>
 
       {/* Rekapitulasi Total Satwa per Lokasi Wahana */}
-      <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-4" id="animals-location-summary">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-teal-50 text-teal-700 rounded-xl">
-              <MapPin size={20} />
+      <div className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-2.5 sm:space-y-4" id="animals-location-summary">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 border-b border-slate-100 pb-2.5 sm:pb-3">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="p-1.5 sm:p-2 bg-teal-50 text-teal-700 rounded-lg sm:rounded-xl shrink-0">
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900 tracking-tight">Total Satwa per Lokasi Wahana</h3>
-              <p className="text-xs text-gray-500">Sebaran populasi koleksi satwa di {locationStats.length} lokasi TMII. Klik lokasi untuk memfilter tabel.</p>
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight">Total Satwa per Lokasi Wahana</h3>
+              <p className="text-[11px] sm:text-xs text-gray-500">Sebaran populasi koleksi satwa di {locationStats.length} lokasi TMII. Klik lokasi untuk memfilter tabel.</p>
             </div>
           </div>
           {locationFilter !== 'Semua' && (
             <button
               onClick={() => setLocationFilter('Semua')}
-              className="text-xs font-semibold px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer self-start sm:self-auto"
+              className="text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer self-start sm:self-auto"
             >
               Reset Filter Lokasi ({locationFilter}) &times;
             </button>
@@ -382,7 +382,7 @@ export default function AnimalAssets({
         {locationStats.length === 0 ? (
           <div className="text-xs text-gray-400 py-4 text-center">Belum ada data sebaran lokasi satwa.</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3.5">
             {locationStats.map(([locName, stats]) => {
               const isSelected = locationFilter === locName;
               return (

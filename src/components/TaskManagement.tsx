@@ -307,18 +307,18 @@ export default function TaskManagement({
   const paginatedTasks = sortedTasks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="space-y-6" id="tasks-module">
+    <div className="space-y-3.5 sm:space-y-6" id="tasks-module">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" id="tasks-header">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4" id="tasks-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Task & Pekerjaan tim Asset Management</h1>
-          <p className="text-sm text-gray-500">Koordinasikan pekerjaan pemeliharaan dan audit aset TMII</p>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight leading-snug">Task & Pekerjaan tim Asset Management</h1>
+          <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5 leading-snug">Koordinasikan pekerjaan pemeliharaan dan audit aset TMII</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 sm:gap-2">
           {isAdmin && (
             <button 
               onClick={() => setIsImportOpen(!isImportOpen)}
-              className={`inline-flex items-center gap-2 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors cursor-pointer border border-transparent ${
+              className={`inline-flex items-center justify-center gap-1.5 sm:gap-2 font-semibold text-[11px] sm:text-sm py-2 px-2.5 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-xs transition-colors cursor-pointer border border-transparent ${
                 isImportOpen 
                   ? 'text-white' 
                   : 'bg-white hover:bg-gray-50 text-gray-700 shadow-sm'
@@ -326,44 +326,44 @@ export default function TaskManagement({
               style={{ backgroundColor: isImportOpen ? theme.primaryColor : undefined }}
               id="btn-import-tasks-toggle"
             >
-              <FileSpreadsheet size={18} className={isImportOpen ? 'text-white' : 'text-slate-500'} />
-              <span>Import Excel/CSV</span>
+              <FileSpreadsheet className={`w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] shrink-0 ${isImportOpen ? 'text-white' : 'text-slate-500'}`} />
+              <span className="truncate">Import Excel/CSV</span>
             </button>
           )}
           <button 
             onClick={() => setIsReportModalOpen(true)}
-            className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-800 font-semibold py-2 px-4 rounded-xl shadow-xs border border-slate-200/80 transition-all cursor-pointer hover:border-slate-300"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-[11px] sm:text-sm py-2 px-2.5 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-xs border border-slate-200/80 transition-all cursor-pointer hover:border-slate-300"
             id="btn-generate-task-report"
             title="Generate Laporan Pekerjaan & Download PDF"
           >
-            <FileText size={18} className="text-rose-600" />
-            <span>Generate Laporan & PDF</span>
+            <FileText className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] text-rose-600 shrink-0" />
+            <span className="truncate">Laporan & PDF</span>
           </button>
           <button 
             onClick={() => setIsGuestLinkModalOpen(true)}
-            className="inline-flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold py-2 px-4 rounded-xl shadow-xs border border-emerald-300/80 transition-all cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold text-[11px] sm:text-sm py-2 px-2.5 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-xs border border-emerald-300/80 transition-all cursor-pointer"
             id="btn-guest-form-link"
             title="Bagikan Tautan Formulir Laporan Tamu"
           >
-            <Globe size={18} className="text-emerald-700" />
-            <span>Formulir Tamu</span>
+            <Globe className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] text-emerald-700 shrink-0" />
+            <span className="truncate">Formulir Tamu</span>
           </button>
           <button 
             onClick={handleExport}
-            className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-[11px] sm:text-sm py-2 px-2.5 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-xs transition-colors"
             id="btn-export-tasks"
           >
-            <FileSpreadsheet size={18} className="text-emerald-600" />
-            <span>Ekspor Excel</span>
+            <FileSpreadsheet className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] text-emerald-600 shrink-0" />
+            <span className="truncate">Ekspor Excel</span>
           </button>
           {isAdmin && (
             <button 
               onClick={handleOpenAddModal}
-              className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
+              className="col-span-2 sm:col-span-1 inline-flex items-center justify-center gap-1.5 sm:gap-2 text-white font-semibold text-xs sm:text-sm py-2 px-3 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-md transition-colors cursor-pointer"
               style={{ backgroundColor: theme.primaryColor }}
               id="btn-add-task"
             >
-              <Plus size={18} />
+              <Plus className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0" />
               <span>Tugas Baru</span>
             </button>
           )}
@@ -394,17 +394,17 @@ export default function TaskManagement({
       </AnimatePresence>
 
       {/* Filters and Search - completely borderless */}
-      <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-4" id="tasks-filter-panel">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 items-center">
+      <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-2.5 sm:space-y-4" id="tasks-filter-panel">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-12 gap-2 sm:gap-4 items-center">
           
-          <div className="relative md:col-span-3">
-            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+          <div className="relative col-span-2 md:col-span-3">
+            <Search className="absolute left-3 top-2.5 text-gray-400 w-4 h-4 sm:w-[18px] sm:h-[18px]" />
             <input 
               type="text" 
               placeholder="Cari tugas, deskripsi, staff..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none"
+              className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 bg-slate-50 text-gray-700 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none"
             />
           </div>
 
@@ -412,7 +412,7 @@ export default function TaskManagement({
             <select 
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
+              className="w-full py-1.5 sm:py-2 px-2.5 sm:px-3 bg-slate-50 text-gray-700 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none border border-slate-200/60 font-medium"
             >
               <option value="Belum Selesai">Belum Selesai (Aktif)</option>
               <option value="Semua">Semua Status</option>
@@ -427,7 +427,7 @@ export default function TaskManagement({
             <select 
               value={priorityFilter}
               onChange={e => setPriorityFilter(e.target.value)}
-              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
+              className="w-full py-1.5 sm:py-2 px-2.5 sm:px-3 bg-slate-50 text-gray-700 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none border border-slate-200/60 font-medium"
             >
               <option value="Semua">Semua Prioritas</option>
               <option value="Rendah">Rendah</option>
@@ -441,7 +441,7 @@ export default function TaskManagement({
             <select 
               value={categoryFilter}
               onChange={e => setCategoryFilter(e.target.value)}
-              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
+              className="w-full py-1.5 sm:py-2 px-2.5 sm:px-3 bg-slate-50 text-gray-700 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none border border-slate-200/60 font-medium"
             >
               <option value="Semua">Semua Kategori</option>
               <option value="Umum">Umum</option>
@@ -453,12 +453,12 @@ export default function TaskManagement({
             </select>
           </div>
 
-          <div className="md:col-span-3 flex items-center gap-2">
-            <span className="text-xs font-bold text-gray-400 shrink-0 uppercase tracking-wider">Urutkan:</span>
+          <div className="col-span-2 sm:col-span-1 md:col-span-3 flex items-center gap-1.5 sm:gap-2">
+            <span className="text-[10px] sm:text-xs font-bold text-gray-400 shrink-0 uppercase tracking-wider">Urut:</span>
             <select 
               value={sortColumn}
               onChange={e => setSortColumn(e.target.value)}
-              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none border border-slate-200/60 font-medium"
+              className="w-full py-1.5 sm:py-2 px-2.5 sm:px-3 bg-slate-50 text-gray-700 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none border border-slate-200/60 font-medium"
             >
               <option value="createdAt">Tanggal Terkini (Dibuat)</option>
               <option value="dueDate">Batas Waktu (Due Date)</option>
@@ -470,10 +470,10 @@ export default function TaskManagement({
             </select>
             <button
               onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
-              className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-gray-500 border border-slate-200/60 shrink-0"
+              className="p-1.5 sm:p-2 bg-slate-50 hover:bg-slate-100 rounded-lg sm:rounded-xl transition-colors cursor-pointer text-gray-500 border border-slate-200/60 shrink-0"
               title={sortDirection === 'desc' ? 'Urutan Terbaru → Terlama' : 'Urutan Terlama → Terbaru'}
             >
-              <ArrowUpDown size={16} className={sortDirection === 'desc' ? 'text-teal-700 font-bold' : 'text-gray-500'} />
+              <ArrowUpDown size={15} className={sortDirection === 'desc' ? 'text-teal-700 font-bold' : 'text-gray-500'} />
             </button>
           </div>
 
@@ -481,7 +481,7 @@ export default function TaskManagement({
       </div>
 
       {/* Task List/Table - completely borderless wrapper */}
-      <div className="bg-white rounded-[24px] shadow-[0_8px_30px_rgba(0,0,0,0.015)] overflow-hidden" id="tasks-table-wrapper">
+      <div className="bg-white rounded-2xl sm:rounded-[24px] shadow-[0_8px_30px_rgba(0,0,0,0.015)] overflow-hidden" id="tasks-table-wrapper">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1000px] text-left border-collapse">
             <thead>

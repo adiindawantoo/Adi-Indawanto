@@ -242,18 +242,18 @@ export default function MepAssets({
   const troubleCount = meps.filter(m => m.status === 'Bermasalah' || m.status === 'Mati Total').length;
 
   return (
-    <div className="space-y-6" id="mep-module">
+    <div className="space-y-3.5 sm:space-y-6" id="mep-module">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" id="mep-header">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4" id="mep-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Database Utilitas MEP</h1>
-          <p className="text-sm text-gray-500">Kelola fasilitas Mechanical, Electrical, dan Plumbing di seluruh gedung/wahana TMII</p>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight leading-snug">Database Utilitas MEP</h1>
+          <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5 leading-snug">Kelola fasilitas Mechanical, Electrical, dan Plumbing di seluruh gedung/wahana TMII</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 sm:gap-2">
           {isAdmin && (
             <button 
               onClick={() => setIsImportOpen(!isImportOpen)}
-              className={`inline-flex items-center gap-2 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors cursor-pointer border border-transparent ${
+              className={`inline-flex items-center justify-center gap-1.5 sm:gap-2 font-semibold text-[11px] sm:text-sm py-2 px-2.5 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-xs transition-colors cursor-pointer border border-transparent ${
                 isImportOpen 
                   ? 'text-white' 
                   : 'bg-white hover:bg-gray-50 text-gray-700 shadow-sm'
@@ -261,25 +261,25 @@ export default function MepAssets({
               style={{ backgroundColor: isImportOpen ? theme.primaryColor : undefined }}
               id="btn-import-meps-toggle"
             >
-              <FileSpreadsheet size={18} className={isImportOpen ? 'text-white' : 'text-slate-500'} />
-              <span>Import Excel/CSV</span>
+              <FileSpreadsheet className={`w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] shrink-0 ${isImportOpen ? 'text-white' : 'text-slate-500'}`} />
+              <span className="truncate">Import Excel/CSV</span>
             </button>
           )}
           <button 
             onClick={handleExport}
-            className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-2 px-4 rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-[11px] sm:text-sm py-2 px-2.5 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-xs transition-colors cursor-pointer"
             id="btn-export-mep"
           >
-            <FileSpreadsheet size={18} className="text-emerald-600" />
-            <span>Ekspor Excel</span>
+            <FileSpreadsheet className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px] text-emerald-600 shrink-0" />
+            <span className="truncate">Ekspor Excel</span>
           </button>
           <button 
             onClick={handleOpenAddModal}
-            className="inline-flex items-center gap-2 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition-colors cursor-pointer"
+            className="col-span-2 sm:col-span-1 inline-flex items-center justify-center gap-1.5 sm:gap-2 text-white font-semibold text-xs sm:text-sm py-2 px-3 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-md transition-colors cursor-pointer"
             style={{ backgroundColor: theme.primaryColor }}
             id="btn-add-mep"
           >
-            <Plus size={18} />
+            <Plus className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0" />
             <span>Registrasi MEP</span>
           </button>
         </div>
@@ -309,52 +309,52 @@ export default function MepAssets({
       </AnimatePresence>
 
       {/* MEP Summary Status Cards - completely borderless */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6" id="mep-summary">
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-gray-500 uppercase">Total Unit Utilitas</span>
-            <p className="text-xl font-extrabold text-slate-900 mt-1">{totalCount} Perangkat aktif</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-6" id="mep-summary">
+        <div className="col-span-2 sm:col-span-1 bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase">Total Unit Utilitas</span>
+            <p className="text-sm sm:text-xl font-extrabold text-slate-900 mt-0.5 sm:mt-1 truncate">{totalCount} Perangkat aktif</p>
           </div>
-          <div className="p-3 bg-violet-50 text-violet-600 rounded-xl">
-            <Settings size={22} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-gray-500 uppercase">Unit Bermasalah</span>
-            <p className="text-xl font-extrabold text-rose-600 mt-1">{troubleCount} Unit kendala</p>
-          </div>
-          <div className="p-3 bg-rose-50 text-rose-600 rounded-xl">
-            <AlertTriangle size={22} />
+          <div className="p-2 sm:p-3 bg-violet-50 text-violet-600 rounded-lg sm:rounded-xl shrink-0">
+            <Settings className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-gray-500 uppercase">Kondisi Normal</span>
-            <p className="text-xl font-extrabold text-emerald-600 mt-1">
-              {totalCount - troubleCount} Unit ({totalCount ? Math.round(((totalCount - troubleCount) / totalCount) * 100) : 100}%)
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase">Bermasalah</span>
+            <p className="text-sm sm:text-xl font-extrabold text-rose-600 mt-0.5 sm:mt-1 truncate">{troubleCount} Kendala</p>
+          </div>
+          <div className="p-2 sm:p-3 bg-rose-50 text-rose-600 rounded-lg sm:rounded-xl shrink-0">
+            <AlertTriangle className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
+          </div>
+        </div>
+
+        <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase">Normal</span>
+            <p className="text-sm sm:text-xl font-extrabold text-emerald-600 mt-0.5 sm:mt-1 truncate">
+              {totalCount - troubleCount} ({totalCount ? Math.round(((totalCount - troubleCount) / totalCount) * 100) : 100}%)
             </p>
           </div>
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-            <ShieldCheck size={22} />
+          <div className="p-2 sm:p-3 bg-emerald-50 text-emerald-600 rounded-lg sm:rounded-xl shrink-0">
+            <ShieldCheck className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
           </div>
         </div>
       </div>
 
       {/* Filter and Search Panel - completely borderless */}
-      <div className="bg-white p-5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-4" id="mep-filter-panel">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+      <div className="bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.015)] space-y-2.5 sm:space-y-4" id="mep-filter-panel">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-2 sm:gap-4 items-center">
           
-          <div className="relative md:col-span-4">
-            <Search className="absolute left-3.5 top-3 text-gray-400" size={16} />
+          <div className="relative col-span-2 md:col-span-4">
+            <Search className="absolute left-3 top-2.5 text-gray-400" size={15} />
             <input 
               type="text" 
               placeholder="Cari kode, nama, lokasi..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none"
+              className="w-full pl-9 pr-3 sm:pr-4 py-1.5 sm:py-2 bg-slate-50 text-gray-700 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none"
             />
           </div>
 
@@ -362,7 +362,7 @@ export default function MepAssets({
             <select 
               value={categoryFilter}
               onChange={e => setCategoryFilter(e.target.value)}
-              className="w-full py-2 px-3 bg-slate-50 text-gray-700 rounded-xl text-sm focus:outline-none"
+              className="w-full py-1.5 sm:py-2 px-2.5 sm:px-3 bg-slate-50 text-gray-700 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:outline-none"
             >
               <option value="Semua">Semua Kategori</option>
               <option value="Mechanical">Mechanical</option>

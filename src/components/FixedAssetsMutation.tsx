@@ -286,26 +286,26 @@ export default function FixedAssetsMutation({ assets, theme, configuredLocations
   };
 
   return (
-    <div className="space-y-6" id="assets-mutation-container">
+    <div className="space-y-3.5 sm:space-y-6" id="assets-mutation-container">
       {/* SCREEN-ONLY VIEW */}
-      <div className="print:hidden space-y-6">
+      <div className="print:hidden space-y-3.5 sm:space-y-6">
         {/* Banner header */}
-        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-slate-100">
-          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <ArrowRight size={20} className="text-slate-500" style={{ color: theme.primaryColor }} />
-            Pemindahan / Mutasi Aset Tetap
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-slate-100">
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+            <ArrowRight size={18} className="text-slate-500 shrink-0" style={{ color: theme.primaryColor }} />
+            <span>Pemindahan / Mutasi Aset Tetap</span>
           </h3>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 leading-snug">
             Gunakan modul ini untuk melakukan mutasi atau serah terima aset ke unit/lokasi lain. Sistem secara otomatis memperbarui lokasi aset fisik dan menghasilkan Dokumen Berita Acara Serah Terima (BAST) untuk dicetak.
           </p>
         </div>
 
         {/* Form and Quick History split */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-6">
           {/* Transfer Form Panel */}
           <div className="lg:col-span-5">
-            <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
-              <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
+              <h4 className="text-[11px] sm:text-xs font-black text-slate-500 uppercase tracking-widest mb-3 sm:mb-4 flex items-center gap-2">
                 <Plus size={14} />
                 Form Mutasi Aset Baru
               </h4>

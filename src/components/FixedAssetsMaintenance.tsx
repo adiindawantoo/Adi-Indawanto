@@ -366,7 +366,7 @@ export default function FixedAssetsMaintenance({
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-3.5 sm:space-y-6 pb-8 sm:pb-12">
       {/* Toast Alert */}
       <AnimatePresence>
         {toastMessage && (
@@ -374,7 +374,7 @@ export default function FixedAssetsMaintenance({
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 text-xs font-bold"
+            className="fixed top-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl sm:rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-2.5 sm:gap-3 text-xs font-bold"
           >
             <Sparkles size={16} className="text-amber-400 shrink-0" />
             <span>{toastMessage}</span>
@@ -383,140 +383,140 @@ export default function FixedAssetsMaintenance({
       </AnimatePresence>
 
       {/* HEADER BANNER */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-6">
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
           <div 
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md shrink-0"
+            className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-md shrink-0"
             style={{ backgroundColor: theme.primaryColor }}
           >
-            <Wrench size={26} />
+            <Wrench className="w-5 h-5 sm:w-[26px] sm:h-[26px]" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight leading-snug">
                 Pemeliharaan & Servis Aset Tetap
               </h1>
-              <span className="bg-amber-100 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="bg-amber-100 text-amber-900 text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
                 Maintenance DB
               </span>
             </div>
-            <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed max-w-2xl">
+            <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 sm:mt-1 leading-snug sm:leading-relaxed max-w-2xl">
               Modul pengisian riwayat perawatan, servis berkala, biaya perbaikan, serta kalkulasi amortisasi dan akumulasi pengeluaran pemeliharaan per aset secara terpadu.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-2.5">
           <button
             type="button"
             onClick={handleExportExcel}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all shadow-xs cursor-pointer border border-slate-200"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] sm:text-xs font-bold transition-all shadow-xs cursor-pointer border border-slate-200"
           >
-            <Download size={15} />
+            <Download className="w-3.5 h-3.5 sm:w-[15px] sm:h-[15px] shrink-0" />
             <span>Ekspor Excel</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleOpenAddModal()}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-extrabold transition-all shadow-md cursor-pointer transform hover:-translate-y-0.5"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl text-white text-[11px] sm:text-xs font-extrabold transition-all shadow-md cursor-pointer transform hover:-translate-y-0.5"
             style={{ backgroundColor: theme.primaryColor }}
           >
-            <Plus size={16} />
-            <span>Catat Pemeliharaan Baru</span>
+            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>Catat Servis Baru</span>
           </button>
         </div>
       </div>
 
       {/* METRICS STATS CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Akumulasi Biaya</p>
-            <h3 className="text-lg font-black text-slate-900 mt-1">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="bg-white rounded-xl sm:rounded-3xl p-3 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">Total Biaya Servis</p>
+            <h3 className="text-sm sm:text-lg font-black text-slate-900 mt-0.5 sm:mt-1 truncate">
               {formatRupiah(metrics.totalCostAll)}
             </h3>
-            <p className="text-[10px] text-amber-700 font-bold mt-1">Seluruh Riwayat Pemeliharaan</p>
+            <p className="text-[9px] sm:text-[10px] text-amber-700 font-bold mt-0.5 truncate">Akumulasi Pemeliharaan</p>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-800 border border-amber-200/60 flex items-center justify-center shrink-0">
-            <DollarSign size={20} />
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-800 border border-amber-200/60 flex items-center justify-center shrink-0">
+            <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Transaksi Servis</p>
-            <h3 className="text-lg font-black text-slate-900 mt-1">
+        <div className="bg-white rounded-xl sm:rounded-3xl p-3 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">Transaksi Servis</p>
+            <h3 className="text-sm sm:text-lg font-black text-slate-900 mt-0.5 sm:mt-1 truncate">
               {metrics.totalCount} Kali
             </h3>
-            <p className="text-[10px] text-emerald-700 font-bold mt-1">Catatan Terverifikasi DB</p>
+            <p className="text-[9px] sm:text-[10px] text-emerald-700 font-bold mt-0.5 truncate">Terverifikasi DB</p>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200/60 flex items-center justify-center shrink-0">
-            <FileText size={20} />
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200/60 flex items-center justify-center shrink-0">
+            <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Aset Pernah Dirawat</p>
-            <h3 className="text-lg font-black text-slate-900 mt-1">
+        <div className="bg-white rounded-xl sm:rounded-3xl p-3 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">Aset Dirawat</p>
+            <h3 className="text-sm sm:text-lg font-black text-slate-900 mt-0.5 sm:mt-1 truncate">
               {metrics.assetsWithMaintenanceCount} / {assets.length} Aset
             </h3>
-            <p className="text-[10px] text-indigo-700 font-bold mt-1">
-              {assets.length > 0 ? ((metrics.assetsWithMaintenanceCount / assets.length) * 100).toFixed(0) : 0}% dari Total Aset Tetap
+            <p className="text-[9px] sm:text-[10px] text-indigo-700 font-bold mt-0.5 truncate">
+              {assets.length > 0 ? ((metrics.assetsWithMaintenanceCount / assets.length) * 100).toFixed(0) : 0}% Total Aset
             </p>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-800 border border-indigo-200/60 flex items-center justify-center shrink-0">
-            <Building2 size={20} />
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-indigo-50 text-indigo-800 border border-indigo-200/60 flex items-center justify-center shrink-0">
+            <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Rata-Rata Biaya Servis</p>
-            <h3 className="text-lg font-black text-slate-900 mt-1">
+        <div className="bg-white rounded-xl sm:rounded-3xl p-3 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">Rata-Rata Biaya</p>
+            <h3 className="text-sm sm:text-lg font-black text-slate-900 mt-0.5 sm:mt-1 truncate">
               {formatRupiah(metrics.avgCostPerService)}
             </h3>
-            <p className="text-[10px] text-sky-700 font-bold mt-1">Per Satu Kali Maintenance</p>
+            <p className="text-[9px] sm:text-[10px] text-sky-700 font-bold mt-0.5 truncate">Per Maintenance</p>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-sky-50 text-sky-800 border border-sky-200/60 flex items-center justify-center shrink-0">
-            <Calculator size={20} />
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-sky-50 text-sky-800 border border-sky-200/60 flex items-center justify-center shrink-0">
+            <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
       </div>
 
       {/* NAVIGATION TABS & FILTER BAR */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
+      <div className="bg-white p-3 sm:p-4 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-xs space-y-2.5 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 border-b border-slate-100 pb-2.5 sm:pb-3">
           {/* View Mode Switcher Pills */}
-          <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/60">
+          <div className="grid grid-cols-2 sm:flex items-center gap-1.5 sm:gap-2 bg-slate-100 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-slate-200/60">
             <button
               onClick={() => setActiveTab('summary')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer ${
                 activeTab === 'summary'
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
-              <Calculator size={14} />
-              <span>Ringkasan Amortisasi Biaya per Aset</span>
+              <Calculator size={13} className="shrink-0" />
+              <span className="truncate">Ringkasan Biaya</span>
             </button>
 
             <button
               onClick={() => setActiveTab('logs')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer ${
                 activeTab === 'logs'
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
-              <Layers size={14} />
-              <span>Seluruh Riwayat Log Maintenance ({filteredLogs.length})</span>
+              <Layers size={13} className="shrink-0" />
+              <span className="truncate">Riwayat Log ({filteredLogs.length})</span>
             </button>
           </div>
 
-          <div className="text-xs font-bold text-slate-500 flex items-center gap-2">
-            <Clock size={14} className="text-amber-600" />
+          <div className="text-[11px] sm:text-xs font-bold text-slate-500 flex items-center gap-1.5 sm:gap-2">
+            <Clock size={13} className="text-amber-600 shrink-0" />
             <span>Diperbarui real-time dari Firestore</span>
           </div>
         </div>

@@ -569,50 +569,50 @@ export default function InteractiveAssetMap({
   };
 
   return (
-    <div className={`space-y-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-slate-900 p-4' : ''}`}>
+    <div className={`space-y-3 sm:space-y-4 ${isFullscreen ? 'fixed inset-0 z-50 bg-slate-900 p-3 sm:p-4' : ''}`}>
       
       {/* 1. TOP HEADER & STATISTICS STRIP */}
-      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div className="bg-white p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2.5 sm:gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl text-white shadow-xs" style={{ backgroundColor: theme.primaryColor }}>
-              <Compass size={20} />
+            <span className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-white shadow-xs shrink-0" style={{ backgroundColor: theme.primaryColor }}>
+              <Compass className="w-4 h-4 sm:w-5 sm:h-5" />
             </span>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">Peta Interaktif Sebaran Titik Aset TMII</h2>
+            <h2 className="text-base sm:text-xl font-black text-slate-900 tracking-tight leading-snug">Peta Interaktif Sebaran Titik Aset TMII</h2>
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 sm:mt-1 leading-snug">
             Visualisasi spasial GIS sebaran Aset Tetap di seluruh anjungan, gedung, dan wahana TMII.
           </p>
         </div>
 
         {/* Quick Stats Badges */}
-        <div className="flex items-center gap-2 flex-wrap text-xs">
-          <div className="px-3 py-1.5 bg-slate-100 rounded-xl border border-slate-200 flex items-center gap-2">
-            <MapPin size={14} className="text-blue-600" />
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap text-[11px] sm:text-xs">
+          <div className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-slate-100 rounded-lg sm:rounded-xl border border-slate-200 flex items-center gap-1.5 sm:gap-2">
+            <MapPin size={13} className="text-blue-600 shrink-0" />
             <span className="font-bold text-slate-700">{stats.locationsWithAssets} Lokasi Aktif</span>
           </div>
 
-          <div className="px-3 py-1.5 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center gap-2">
-            <CheckCircle2 size={14} className="text-emerald-600" />
-            <span className="font-bold text-emerald-800">{stats.mappedAssets} Unit Terpetakan ({stats.healthyPercentage}% Prima)</span>
+          <div className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-emerald-50 rounded-lg sm:rounded-xl border border-emerald-200 flex items-center gap-1.5 sm:gap-2">
+            <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
+            <span className="font-bold text-emerald-800">{stats.mappedAssets} Unit ({stats.healthyPercentage}% Prima)</span>
           </div>
 
           {stats.totalIssues > 0 && (
-            <div className="px-3 py-1.5 bg-rose-50 rounded-xl border border-rose-200 flex items-center gap-2">
-              <AlertTriangle size={14} className="text-rose-600" />
+            <div className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-rose-50 rounded-lg sm:rounded-xl border border-rose-200 flex items-center gap-1.5 sm:gap-2">
+              <AlertTriangle size={13} className="text-rose-600 shrink-0" />
               <span className="font-bold text-rose-800">{stats.totalIssues} Perlu Perhatian</span>
             </div>
           )}
 
-          <div className="px-3 py-1.5 bg-amber-50 rounded-xl border border-amber-200 flex items-center gap-1.5">
-            <span className="text-[10px] font-extrabold uppercase text-amber-700">Estimasi Nilai:</span>
+          <div className="px-2.5 py-1 sm:px-3 sm:py-1.5 bg-amber-50 rounded-lg sm:rounded-xl border border-amber-200 flex items-center gap-1 sm:gap-1.5">
+            <span className="text-[9px] sm:text-[10px] font-extrabold uppercase text-amber-700">Nilai:</span>
             <span className="font-black text-amber-900">{formatRupiah(stats.totalValuation)}</span>
           </div>
         </div>
       </div>
 
       {/* 2. MAP FILTER & SEARCH HUD BAR */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+      <div className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-xs space-y-2.5 sm:space-y-3">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3">
           {/* Live Search Input */}
           <div className="relative w-full md:w-96">

@@ -226,32 +226,32 @@ export default function AssetCodificationSettings({
   }, [currentCategoryRule, searchTermRule]);
 
   return (
-    <div className="space-y-6" id="asset-codification-settings">
+    <div className="space-y-3.5 sm:space-y-6" id="asset-codification-settings">
       {/* Top Banner: Formula Standard TMII */}
-      <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 rounded-2xl p-6 text-white shadow-lg border border-blue-900/40 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 rounded-xl sm:rounded-2xl p-3.5 sm:p-6 text-white shadow-lg border border-blue-900/40 relative overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-10 -translate-y-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
         
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 relative z-10">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs font-bold tracking-wide border border-blue-400/30">
-              <Sparkles size={14} />
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3.5 sm:gap-6 relative z-10">
+          <div className="space-y-1.5 sm:space-y-2">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-blue-500/20 text-blue-300 rounded-full text-[10px] sm:text-xs font-bold tracking-wide border border-blue-400/30">
+              <Sparkles size={12} />
               <span>Standar Kodefikasi Resmi Aset Tetap TMII</span>
             </div>
-            <h2 className="text-2xl font-black tracking-tight text-white font-display">
+            <h2 className="text-base sm:text-2xl font-black tracking-tight text-white font-display leading-snug">
               Struktur & Otomatisasi Kode Aset
             </h2>
-            <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
+            <p className="text-slate-300 text-[11px] sm:text-sm max-w-2xl leading-snug sm:leading-relaxed">
               Format standar pengkodean hierarkis terpadu untuk memastikan setiap barang inventaris terdaftar secara unik, runtut, dan mudah diidentifikasi di lapangan.
             </p>
           </div>
 
           {/* Formula Display Box */}
-          <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/15 max-w-md w-full">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-blue-300 mb-2 flex items-center justify-between">
+          <div className="bg-white/10 backdrop-blur-md p-3 sm:p-4 rounded-xl border border-white/15 max-w-md w-full">
+            <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-blue-300 mb-1.5 sm:mb-2 flex items-center justify-between">
               <span>Formula Segmentasi Kode</span>
               <span className="text-amber-400 font-mono">6 Segmen</span>
             </div>
-            <div className="font-mono text-base md:text-lg font-black tracking-wider text-white bg-black/40 p-2.5 rounded-lg text-center border border-white/10 flex items-center justify-center gap-1">
+            <div className="font-mono text-sm md:text-lg font-black tracking-wider text-white bg-black/40 p-2 sm:p-2.5 rounded-lg text-center border border-white/10 flex items-center justify-center gap-1 overflow-x-auto">
               <span className="text-amber-400" title="Kode 1: Kepemilikan (3 char)">[K1]</span>
               <span className="text-blue-400" title="Kode 2: Lokasi Kawasan (2 digit)">[K2]</span>
               <span className="text-slate-400">.</span>
@@ -262,7 +262,7 @@ export default function AssetCodificationSettings({
               <span className="text-slate-400">-</span>
               <span className="text-rose-400" title="Kode 6: Nomor Urut (3 digit)">[K6]</span>
             </div>
-            <div className="mt-2 text-[11px] text-slate-300 leading-snug">
+            <div className="mt-1.5 sm:mt-2 text-[10px] sm:text-[11px] text-slate-300 leading-snug">
               <span className="font-semibold text-white">Contoh: </span>
               <code className="text-amber-300 font-bold font-mono">BMN03.INF04.26-001</code>
               <span className="text-slate-400 block mt-0.5">
@@ -273,47 +273,47 @@ export default function AssetCodificationSettings({
         </div>
 
         {/* Sub-Tabs Nav */}
-        <div className="flex items-center justify-between gap-3 mt-6 pt-4 border-t border-white/10 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-white/10 flex-wrap">
+          <div className="grid grid-cols-2 sm:flex items-center gap-1.5 sm:gap-2 flex-wrap w-full sm:w-auto">
             <button
               onClick={() => setActiveSubTab('rules')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 ${
                 activeSubTab === 'rules'
                   ? 'bg-white text-slate-950 shadow-sm'
                   : 'bg-white/10 text-white/80 hover:bg-white/20'
               }`}
             >
-              <FolderTree size={15} />
-              <span>Kamus Master Aturan (Kode 1 s/d 6)</span>
+              <FolderTree size={14} className="shrink-0" />
+              <span className="truncate">Kamus Aturan</span>
             </button>
 
             <button
               onClick={() => setActiveSubTab('simulator')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 ${
                 activeSubTab === 'simulator'
                   ? 'bg-white text-slate-950 shadow-sm'
                   : 'bg-white/10 text-white/80 hover:bg-white/20'
               }`}
             >
-              <Sparkles size={15} />
-              <span>Simulator Generator Kode</span>
+              <Sparkles size={14} className="shrink-0" />
+              <span className="truncate">Simulator Kode</span>
             </button>
 
             <button
               onClick={() => setActiveSubTab('parser')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 ${
                 activeSubTab === 'parser'
                   ? 'bg-white text-slate-950 shadow-sm'
                   : 'bg-white/10 text-white/80 hover:bg-white/20'
               }`}
             >
-              <FileCode2 size={15} />
-              <span>Urai & Cek Kode (Code Parser)</span>
+              <FileCode2 size={14} className="shrink-0" />
+              <span className="truncate">Urai & Cek Kode</span>
             </button>
 
             <button
               onClick={() => setActiveSubTab('batch')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 ${
                 activeSubTab === 'batch'
                   ? 'bg-white text-slate-950 shadow-sm'
                   : 'bg-white/10 text-white/80 hover:bg-white/20'

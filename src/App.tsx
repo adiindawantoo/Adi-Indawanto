@@ -1293,8 +1293,8 @@ export default function App() {
           className="mx-3 md:mx-6 mt-2.5 md:mt-3.5 mb-1.5 md:mb-2 px-3 md:px-5 py-2 md:py-3.5 apple-glass rounded-xl md:rounded-2xl flex items-center justify-between gap-2 z-20 shadow-md border border-white/80" 
           id="main-header"
         >
-          {/* Mobile Left Slot: Prominent Menu Trigger + Compact Brand */}
-          <div className="flex items-center gap-2 min-w-0 flex-1 md:hidden">
+          {/* Mobile Left Slot: Prominent Menu Trigger + Enlarged TMII Logo */}
+          <div className="flex items-center gap-3 min-w-0 flex-1 md:hidden">
             <button 
               type="button"
               onClick={() => setIsMobileMenuOpen(true)}
@@ -1306,28 +1306,8 @@ export default function App() {
               <Menu size={16} />
               <span>Menu</span>
             </button>
-            <div className="flex items-center gap-1.5 min-w-0">
-              <TmiiLogo height="1.85rem" color={currentTheme.primaryColor} />
-              <div className="min-w-0">
-                <div className="flex items-center gap-1">
-                  <h1 className="text-[11px] font-extrabold tracking-tight leading-tight font-display text-slate-900 truncate">
-                    Manajemen Aset
-                  </h1>
-                  <span className="bg-amber-100 text-amber-900 text-[8px] font-black px-1.5 py-0.5 rounded-full shrink-0 uppercase tracking-wider">
-                    TMII
-                  </span>
-                </div>
-                <p className="text-[8px] font-semibold text-slate-400 tracking-wide uppercase truncate">
-                  {activeTab === 'dashboard' ? 'Dashboard Utama' :
-                   activeTab === 'tasks' ? 'Monitoring Tugas' :
-                   activeTab.startsWith('fixed-assets') ? 'Aset Tetap' :
-                   activeTab === 'animals' ? 'Aset Satwa' :
-                   activeTab === 'cctv' ? 'CCTV Keamanan' :
-                   activeTab === 'mep' ? 'Aset MEP' :
-                   activeTab === 'museum' ? 'Koleksi Museum' :
-                   'Pengaturan'}
-                </p>
-              </div>
+            <div className="flex items-center min-w-0">
+              <TmiiLogo height="2.35rem" color={currentTheme.primaryColor} />
             </div>
           </div>
 
@@ -1787,7 +1767,7 @@ export default function App() {
         </AnimatePresence>
 
         {/* ACTIVE MODULE CONTAINER */}
-        <main className="flex-1 px-3 py-2.5 pb-24 md:p-8 overflow-y-auto" id="main-content">
+        <main className="flex-1 w-full max-w-full px-3 py-2 pb-24 md:p-8 overflow-y-auto overflow-x-hidden" id="main-content">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -1795,7 +1775,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.15 }}
-              className="max-w-7xl mx-auto"
+              className="max-w-7xl mx-auto w-full min-w-0"
             >
               {activeTab === 'dashboard' && (
                 <Dashboard 

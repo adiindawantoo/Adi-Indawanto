@@ -592,23 +592,23 @@ export default function WhitelistSettings({
   };
 
   return (
-    <div className="space-y-8 pb-12" id="whitelist-module">
+    <div className="space-y-4 sm:space-y-8 pb-8 sm:pb-12" id="whitelist-module">
       
       {/* Page Title */}
-      <div className="pt-4 pb-2 px-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="pt-1 sm:pt-4 pb-1 sm:pb-2 px-0.5 sm:px-1 flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-lg sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-snug">
               {isAdmin ? 'Pengaturan Sistem & Database Terpadu' : 'Aturan & Standarisasi Kode Aset'}
             </h1>
             {!isAdmin && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
-                <ShieldCheck size={13} className="text-blue-600" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                <ShieldCheck size={12} className="text-blue-600" />
                 <span>Akses Staf</span>
               </span>
             )}
           </div>
-          <p className="text-slate-500 text-xs mt-1 font-medium">
+          <p className="text-slate-500 text-[11px] sm:text-xs mt-0.5 sm:mt-1 font-medium leading-snug">
             {isAdmin 
               ? 'Kelola otorisasi email staf, konfigurasi lokasi aset 5 wilayah TMII, dan pemeliharaan basis data.'
               : 'Pedoman resmi kodefikasi aset tetap TMII (K1K2.K3K4.K5-K6), simulasi pembuatan kode baru, uji urai kode, dan direktori kode.'}
@@ -617,82 +617,73 @@ export default function WhitelistSettings({
 
         {/* Tab Navigation Pill Header - Only for Admin */}
         {isAdmin ? (
-          <div className="flex flex-wrap items-center gap-1.5 bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300/60 shadow-inner">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1 sm:gap-1.5 bg-slate-200/80 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-slate-300/60 shadow-inner">
             <button
               onClick={() => setActiveTab('codification')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer ${
                 activeTab === 'codification'
                   ? 'bg-blue-600 text-white shadow-md ring-1 ring-blue-400'
                   : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
-              <Sparkles size={15} />
-              <span>Aturan Kode Aset</span>
-              <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-white/20 text-white font-mono font-bold">
+              <Sparkles size={13} className="shrink-0" />
+              <span className="truncate">Aturan Kode Aset</span>
+              <span className="hidden sm:inline ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-white/20 text-white font-mono font-bold">
                 Auto
               </span>
             </button>
 
             <button
               onClick={() => setActiveTab('categories')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer ${
                 activeTab === 'categories'
                   ? 'bg-amber-500 text-slate-950 shadow-md ring-1 ring-amber-400'
                   : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
-              <FolderTree size={15} />
-              <span>Kategori & Jenis Aset</span>
-              <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-slate-900 text-white font-bold">
-                {displayCategories.length}
-              </span>
+              <FolderTree size={13} className="shrink-0" />
+              <span className="truncate">Kategori ({displayCategories.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('locations')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer ${
                 activeTab === 'locations'
                   ? 'bg-amber-500 text-slate-950 shadow-md ring-1 ring-amber-400'
                   : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
-              <MapPin size={15} />
-              <span>Setting Lokasi Aset</span>
-              <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-slate-900 text-white font-bold">
-                {locations.length}
-              </span>
+              <MapPin size={13} className="shrink-0" />
+              <span className="truncate">Lokasi ({locations.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('whitelist')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer ${
                 activeTab === 'whitelist'
                   ? 'bg-slate-900 text-white shadow-md'
                   : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
-              <UserCheck size={15} />
-              <span>Otorisasi Email</span>
-              <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-600 text-white font-bold">
-                {emails.length + 1}
-              </span>
+              <UserCheck size={13} className="shrink-0" />
+              <span className="truncate">Email ({emails.length + 1})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('database')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              className={`col-span-2 sm:col-span-1 flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer ${
                 activeTab === 'database'
                   ? 'bg-slate-900 text-white shadow-md'
                   : 'text-slate-700 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
-              <Database size={15} />
+              <Database size={13} className="shrink-0" />
               <span>Reset Data</span>
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-2 bg-blue-50 border border-blue-200/80 px-4 py-2.5 rounded-2xl text-xs font-semibold text-blue-900 shadow-xs">
-            <Sparkles size={15} className="text-blue-600" />
+          <div className="flex items-center gap-2 bg-blue-50 border border-blue-200/80 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-semibold text-blue-900 shadow-xs">
+            <Sparkles size={14} className="text-blue-600 shrink-0" />
             <span>Mode Staf: Pedoman & Kodefikasi Resmi TMII</span>
           </div>
         )}
@@ -700,21 +691,21 @@ export default function WhitelistSettings({
 
       {/* PWA Add To Home Screen Card inside Pengaturan */}
       {onOpenPwaModal && (
-        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-50 via-amber-50/80 to-white border border-amber-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 shadow-sm">
-              <Smartphone size={22} />
+        <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-50 via-amber-50/80 to-white border border-amber-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-3.5">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 shadow-sm">
+              <Smartphone className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px]" />
             </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-sm font-extrabold text-slate-900">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900">
                   Tambahkan Aplikasi ke Layar Utama (PWA)
                 </h2>
-                <span className="text-[9px] font-black uppercase tracking-wider bg-slate-900 text-amber-400 px-2 py-0.5 rounded-md">
+                <span className="text-[9px] font-black uppercase tracking-wider bg-slate-900 text-amber-400 px-1.5 sm:px-2 py-0.5 rounded-md">
                   PWA
                 </span>
               </div>
-              <p className="text-xs text-slate-600 font-medium mt-0.5">
+              <p className="text-[11px] sm:text-xs text-slate-600 font-medium mt-0.5 leading-snug">
                 Instal aplikasi TMII Asset Management di layar utama HP Android, iPhone, atau Desktop untuk akses cepat seperti aplikasi native.
               </p>
             </div>
@@ -723,9 +714,9 @@ export default function WhitelistSettings({
           <button
             type="button"
             onClick={onOpenPwaModal}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] sm:text-xs font-black transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
           >
-            <Smartphone size={15} />
+            <Smartphone size={14} />
             <span>Pasang ke Layar Utama</span>
           </button>
         </div>
